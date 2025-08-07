@@ -146,9 +146,7 @@
   - Write performance tests for table construction efficiency
   - _Requirements: 3.5_
 
-- [-] 9. Create error reporting infrastructure
-
-
+- [x] 9. Create error reporting infrastructure
 
 - [x] 9.1 Implement ErrorReporter for centralized error handling
 
@@ -160,11 +158,6 @@
 
 
 - [x] 9.2 Integrate error reporting across all components
-
-
-
-
-
 
   - Add error reporting to lexer, parser, and analyzer components
   - Implement error collection for batch reporting
@@ -178,6 +171,8 @@
   - Create templates for parser class, token classes, and AST nodes
   - Implement template filling with grammar-specific data
   - Create unit tests for template processing
+  - Create the required commits by running the `git commit` command
+  - Always run `mvn test` to check that everything is working correctly
   - _Requirements: 4.1, 4.2, 4.3, 4.5, 4.6_
 
 - [ ] 10.2 Implement JavaCodeGenerator for parser generation
@@ -185,6 +180,8 @@
   - Implement generation of main parser class with embedded tables
   - Add generation of token classes for all terminal symbols
   - Create comprehensive tests for code generation output
+  - Always run `mvn test` to check that everything is working correctly
+  - Create the required commits by running the `git commit` command
   - _Requirements: 4.1, 4.2, 4.5, 4.6_
 
 - [ ] 10.3 Generate AST node classes and error handling
@@ -192,6 +189,8 @@
   - Add error recovery mechanisms to generated parser code
   - Include proper package declarations and import statements
   - Write tests to verify generated code compiles and runs correctly
+  - Always run `mvn test` to check that everything is working correctly
+  - Create the required commits by running the `git commit` command
   - _Requirements: 4.3, 4.4, 4.5, 4.6_
 
 - [ ] 11. Create main application and CLI interface
@@ -200,6 +199,8 @@
   - Implement command-line argument parsing and validation
   - Add file I/O handling for grammar input and code output
   - Create integration tests for complete parser generation pipeline
+  - Always run `mvn test` to check that everything is working correctly
+  - Create the required commits by running the `git commit` command
   - _Requirements: 4.1, 4.6, 5.1_
 
 - [ ] 11.2 Add comprehensive CLI options and help system
@@ -207,6 +208,8 @@
   - Add verbose mode for detailed processing information
   - Create help system with usage examples and grammar format documentation
   - Write end-to-end tests with various CLI configurations
+  - Always run `mvn test` to check that everything is working correctly
+  - Create the required commits by running the `git commit` command
   - _Requirements: 4.6, 5.1, 5.4_
 
 - [ ] 12. Test with arithmetic grammar example
@@ -215,6 +218,8 @@
   - Verify correct parsing of expressions with proper precedence
   - Test parentheses handling and associativity rules
   - Write automated tests for arithmetic expression parsing
+  - Always run `mvn test` to check that everything is working correctly
+  - Create the required commits by running the `git commit` command
   - _Requirements: 6.1, 6.2, 6.3, 6.4_
 
 - [ ] 12.2 Validate generated parser functionality
@@ -222,6 +227,8 @@
   - Verify error handling for invalid arithmetic input
   - Ensure AST generation reflects correct operator precedence
   - Create comprehensive test suite for arithmetic grammar validation
+  - Always run `mvn test` to check that everything is working correctly
+  - Create the required commits by running the `git commit` command
   - _Requirements: 6.3, 6.4, 6.5_
 
 - [ ] 13. Create comprehensive test suite and documentation
@@ -230,6 +237,8 @@
   - Create test cases for various grammar types and complexity levels
   - Add performance benchmarks for large grammar processing
   - Implement regression tests for bug prevention
+  - Always run `mvn test` to check that everything is working correctly
+  - Create the required commits by running the `git commit` command
   - _Requirements: 2.6, 4.1, 5.5_
 
 - [ ] 13.2 Add example grammars and usage documentation
@@ -237,4 +246,6 @@
   - Write comprehensive documentation for grammar syntax and tool usage
   - Add troubleshooting guide for common grammar issues
   - Create API documentation for all public classes and methods
+  - Always run `mvn test` to check that everything is working correctly
+  - Create the required commits by running the `git commit` command
   - _Requirements: 1.5, 5.2, 5.3_
