@@ -421,8 +421,11 @@ public class ParserGenerator {
      * @return parsed CLI options
      */
     private static CLIOptions parseCommandLineArguments(String[] args) {
+
         CLIOptions options = new CLIOptions();
-        
+
+        options.showHelp = args.length == 0;
+
         for (int i = 0; i < args.length; i++) {
             String arg = args[i];
             
@@ -496,7 +499,7 @@ public class ParserGenerator {
                     break;
             }
         }
-        
+
         return options;
     }
     
