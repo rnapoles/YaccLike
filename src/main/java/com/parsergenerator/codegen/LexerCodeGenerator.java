@@ -232,6 +232,7 @@ public class LexerCodeGenerator {
      * Generates terminal order for longest-match tokenization strategy.
      * Orders terminals by pattern specificity and length to ensure
      * longest and most specific matches are tried first.
+     * Keywords and literal patterns are prioritized over general patterns.
      *
      * @param terminals list of terminal information
      * @return ordered list of terminal names for optimal matching
@@ -239,7 +240,18 @@ public class LexerCodeGenerator {
     private List<String> generateTerminalOrder(List<TerminalInfo> terminals) {
         return terminals.stream()
                 .sorted((t1, t2) -> {
-                    // First, sort by pattern specificity (more specific patterns first)
+                    // First, prioritize keywords and literals over general patterns
+                    boolean t1IsKeywordOrLiteral = isKeywordOrLiteral(t1);
+                    boolean t2IsKeywordOrLiteral = isKeywordOrLiteral(t2);
+                    
+                    if (t1IsKeywordOrLiteral && !t2IsKeywordOrLiteral) {
+                        return -1; // t1 comes first
+                    } else if (!t1IsKeywordOrLiteral && t2IsKeywordOrLiteral) {
+                        return 1; // t2 comes first
+                    }
+                    
+                    // If both are keywords/literals or both are general patterns,
+                    // sort by pattern specificity (more specific patterns first)
                     int specificityCompare = Integer.compare(t2.getSpecificity(), t1.getSpecificity());
                     if (specificityCompare != 0) {
                         return specificityCompare;
@@ -256,6 +268,42 @@ public class LexerCodeGenerator {
                 })
                 .map(TerminalInfo::getName)
                 .collect(Collectors.toList());
+    }
+    
+    /**
+     * Determines if a terminal represents a keyword or literal pattern.
+     * Keywords and literals should be matched before general patterns like identifiers.
+     *
+     * @param terminal the terminal to check
+     * @return true if the terminal is a keyword or literal, false otherwise
+     */
+    private boolean isKeywordOrLiteral(TerminalInfo terminal) {
+        String pattern = terminal.getPattern();
+        String name = terminal.getName();
+        
+        // Check if it's a keyword (name starts with KEYWORD_ or pattern is a simple literal)
+        if (name.startsWith("KEYWORD_")) {
+            return true;
+        }
+        
+        // Check if pattern is a simple literal (no regex metacharacters except escapes)
+        if (pattern != null && !pattern.isEmpty()) {
+            // Remove escaped characters for analysis
+            String unescaped = pattern.replaceAll("\\\\.", "X");
+            
+            // If no regex metacharacters remain, it's a literal
+            boolean hasMetaChars = unescaped.matches(".*[\\[\\]\\(\\)\\{\\}\\*\\+\\?\\|\\^\\$\\.].*");
+            if (!hasMetaChars) {
+                return true;
+            }
+            
+            // Check for simple escaped operators (like \+, \*, etc.)
+            if (pattern.matches("\\\\[+\\-*/.=<>!&|(){}\\[\\];,]")) {
+                return true;
+            }
+        }
+        
+        return false;
     }
     
     /**

@@ -35,11 +35,7 @@
   - When every thing is ok, save the changes using `git` command.
   - _Requirements: 1.4, 5.1, 5.2, 5.3, 5.4_
 
-- [ ] 5. Integrate lexer generation with existing JavaCodeGenerator
-
-
-
-
+- [x] 5. Integrate lexer generation with existing JavaCodeGenerator
 
   - Run `mvn test -Dtest="com.parsergenerator.codegen.ASTGenerationTest"` 
   - Modify `JavaCodeGenerator` to include lexer generation alongside parser generation
@@ -50,6 +46,7 @@
   - _Requirements: 2.1, 2.2, 2.3, 2.4_
 
 - [ ] 6. Create comprehensive unit tests for lexer generation
+
   - Write unit tests for `LexerCodeGenerator` covering various terminal pattern scenarios
   - Test template rendering with different grammar configurations
   - Test error handling during lexer generation process
