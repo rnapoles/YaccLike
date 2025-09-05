@@ -10,11 +10,6 @@
 
 - [x] 2. Generate parser code from expression-evaluator.grammar
 
-
-
-
-
-
   - Copy expression-evaluator.grammar to the project resources
   - Create yacc-like-parser-generator jar file with all dependencies
   - Use yacc-like-parser-generator to process the grammar file
@@ -30,6 +25,7 @@
   - Create MathFunction enum for supported mathematical functions
   - Implement ExpressionException hierarchy for error handling
   - Write unit tests for enum and exception classes
+  - When every thing is ok, create the required commits by running the `git commit` command.  
   - _Requirements: 3.6, 4.4_
 
 - [ ] 4. Implement VariableContext for variable management
@@ -38,6 +34,7 @@
   - Add built-in constants (pi, e) to default context
   - Create createDefault static method for standard context initialization
   - Write unit tests for variable context operations
+  - When every thing is ok, create the required commits by running the `git commit` command.  
   - _Requirements: 3.6_
 
 - [ ] 5. Implement MathFunctionLibrary for mathematical functions
@@ -47,6 +44,7 @@
   - Implement utility functions (sqrt, abs)
   - Add proper error handling for invalid function arguments
   - Write comprehensive unit tests for all mathematical functions
+  - When every thing is ok, create the required commits by running the `git commit` command.  
   - _Requirements: 3.3, 4.4_
 
 - [ ] 6. Implement ExpressionEvaluator using visitor pattern
@@ -57,6 +55,7 @@
   - Implement visitNumber method for numeric literal evaluation
   - Implement visitIdentifier method for variable and constant resolution
   - Write unit tests for each visitor method
+  - When every thing is ok, create the required commits by running the `git commit` command.  
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6_
 
 - [ ] 7. Implement ExpressionValidator for input validation
@@ -66,6 +65,7 @@
   - Implement checkVariables method for variable existence validation
   - Add proper error reporting with specific validation messages
   - Write unit tests for all validation scenarios
+  - When every thing is ok, create the required commits by running the `git commit` command.  
   - _Requirements: 4.4_
 
 - [ ] 8. Implement ExpressionCalculator main application class
@@ -75,6 +75,7 @@
   - Implement parseOnly method for debugging and AST inspection
   - Add proper error handling and exception propagation
   - Write integration tests for complete evaluation pipeline
+  - When every thing is ok, create the required commits by running the `git commit` command.  
   - _Requirements: 1.4, 1.5_
 
 - [ ] 9. Create comprehensive test suite for basic arithmetic
@@ -84,6 +85,7 @@
   - Test unary minus operation in different contexts
   - Test parentheses grouping and precedence override
   - Verify all tests pass with mvn test command
+  - When every thing is ok, create the required commits by running the `git commit` command.  
   - _Requirements: 4.1_
 
 - [ ] 10. Create comprehensive test suite for mathematical functions
@@ -93,6 +95,7 @@
   - Test mathematical constants (pi, e) in expressions
   - Test function composition and nested function calls
   - Verify all tests pass with mvn test command
+  - When every thing is ok, create the required commits by running the `git commit` command.  
   - _Requirements: 4.2_
 
 - [ ] 11. Create test suite for complex expressions and edge cases
@@ -102,6 +105,7 @@
   - Test error handling for division by zero and invalid function arguments
   - Test malformed expression parsing and error reporting
   - Verify all tests pass with mvn test command
+  - When every thing is ok, create the required commits by running the `git commit` command.  
   - _Requirements: 4.3, 4.4_
 
 - [ ] 12. Verify Maven build and create initial commit
@@ -109,6 +113,7 @@
   - Run mvn test to verify all tests pass
   - Create initial git commit with project structure and generated code
   - Add meaningful commit message describing the initial project setup
+  - When every thing is ok, create the required commits by running the `git commit` command.  
   - _Requirements: 1.4, 1.5, 5.1, 5.2_
 
 - [ ] 13. Create commit for visitor implementation
@@ -116,6 +121,7 @@
   - Run mvn test to ensure all tests pass
   - Create git commit with visitor implementation and related tests
   - Add meaningful commit message describing the visitor pattern implementation
+  - When every thing is ok, create the required commits by running the `git commit` command.  
   - _Requirements: 5.3_
 
 - [ ] 14. Create commit for comprehensive test suite
@@ -123,6 +129,7 @@
   - Run mvn test to ensure 100% test success rate
   - Create git commit with complete test suite
   - Add meaningful commit message describing the comprehensive testing
+  - When every thing is ok, create the required commits by running the `git commit` command.  
   - _Requirements: 5.4_
 
 - [ ] 15. Create final commit with documentation and project completion
