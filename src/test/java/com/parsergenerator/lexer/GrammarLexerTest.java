@@ -366,4 +366,149 @@ class GrammarLexerTest {
         assertEquals(TokenType.TERMINAL, tokens.get(2).getType());
         assertEquals("identifier2", tokens.get(2).getValue());
     }
+    
+    // Multi-line detection infrastructure tests
+    
+    @Test
+    void testIsAtLineStartAtBeginning() {
+        GrammarLexer lexer = new GrammarLexer("ID = {test}");
+        
+        // Use reflection to access private method for testing
+        try {
+            java.lang.reflect.Method method = GrammarLexer.class.getDeclaredMethod("isAtLineStart");
+            method.setAccessible(true);
+            
+            boolean result = (Boolean) method.invoke(lexer);
+            assertTrue(result, "Should be at line start at position 0");
+        } catch (Exception e) {
+            fail("Failed to test isAtLineStart method: " + e.getMessage());
+        }
+    }
+    
+    @Test
+    void testIsAtLineStartAfterNewline() {
+        GrammarLexer lexer = new GrammarLexer("ID\nNUMBER");
+        
+        // Advance past "ID\n" to position after newline
+        lexer.nextToken(); // ID
+        lexer.nextToken(); // newline
+        
+        try {
+            java.lang.reflect.Method method = GrammarLexer.class.getDeclaredMethod("isAtLineStart");
+            method.setAccessible(true);
+            
+            boolean result = (Boolean) method.invoke(lexer);
+            assertTrue(result, "Should be at line start after newline");
+        } catch (Exception e) {
+            fail("Failed to test isAtLineStart method: " + e.getMessage());
+        }
+    }
+    
+    @Test
+    void testIsAtLineStartInMiddleOfLine() {
+        GrammarLexer lexer = new GrammarLexer("ID = {test}");
+        
+        // Advance past "ID" to be in middle of line
+        lexer.nextToken(); // ID
+        
+        try {
+            java.lang.reflect.Method method = GrammarLexer.class.getDeclaredMethod("isAtLineStart");
+            method.setAccessible(true);
+            
+            boolean result = (Boolean) method.invoke(lexer);
+            assertFalse(result, "Should not be at line start in middle of line");
+        } catch (Exception e) {
+            fail("Failed to test isAtLineStart method: " + e.getMessage());
+        }
+    }
+    
+    @Test
+    void testIsProductionContinuationWithLeadingPipe() {
+        GrammarLexer lexer = new GrammarLexer("  | <term>");
+        
+        try {
+            java.lang.reflect.Method method = GrammarLexer.class.getDeclaredMethod("isProductionContinuation");
+            method.setAccessible(true);
+            
+            boolean result = (Boolean) method.invoke(lexer);
+            assertTrue(result, "Should detect continuation with leading pipe after whitespace");
+        } catch (Exception e) {
+            fail("Failed to test isProductionContinuation method: " + e.getMessage());
+        }
+    }
+    
+    @Test
+    void testIsProductionContinuationWithoutPipe() {
+        GrammarLexer lexer = new GrammarLexer("  <term>");
+        
+        try {
+            java.lang.reflect.Method method = GrammarLexer.class.getDeclaredMethod("isProductionContinuation");
+            method.setAccessible(true);
+            
+            boolean result = (Boolean) method.invoke(lexer);
+            assertFalse(result, "Should not detect continuation without leading pipe");
+        } catch (Exception e) {
+            fail("Failed to test isProductionContinuation method: " + e.getMessage());
+        }
+    }
+    
+    @Test
+    void testIsProductionContinuationAtEndOfInput() {
+        GrammarLexer lexer = new GrammarLexer("");
+        
+        try {
+            java.lang.reflect.Method method = GrammarLexer.class.getDeclaredMethod("isProductionContinuation");
+            method.setAccessible(true);
+            
+            boolean result = (Boolean) method.invoke(lexer);
+            assertFalse(result, "Should not detect continuation at end of input");
+        } catch (Exception e) {
+            fail("Failed to test isProductionContinuation method: " + e.getMessage());
+        }
+    }
+    
+    @Test
+    void testIsProductionContinuationPositionRestoration() {
+        GrammarLexer lexer = new GrammarLexer("   | <term>");
+        
+        try {
+            java.lang.reflect.Method method = GrammarLexer.class.getDeclaredMethod("isProductionContinuation");
+            method.setAccessible(true);
+            
+            // Get initial position
+            Token firstToken = lexer.nextToken();
+            assertEquals(TokenType.PIPE, firstToken.getType());
+            assertEquals(4, firstToken.getPosition().getColumn()); // Should be at column 4 (after 3 spaces)
+            
+        } catch (Exception e) {
+            fail("Failed to test position restoration: " + e.getMessage());
+        }
+    }
+    
+    @Test
+    void testMultiLineInfrastructureInitialization() {
+        GrammarLexer lexer = new GrammarLexer("ID = {test}");
+        
+        try {
+            // Test that multi-line fields are properly initialized
+            java.lang.reflect.Field tokenBufferField = GrammarLexer.class.getDeclaredField("tokenBuffer");
+            tokenBufferField.setAccessible(true);
+            List<?> tokenBuffer = (List<?>) tokenBufferField.get(lexer);
+            assertNotNull(tokenBuffer, "Token buffer should be initialized");
+            assertTrue(tokenBuffer.isEmpty(), "Token buffer should be empty initially");
+            
+            java.lang.reflect.Field inMultiLineField = GrammarLexer.class.getDeclaredField("inMultiLineProduction");
+            inMultiLineField.setAccessible(true);
+            boolean inMultiLine = (Boolean) inMultiLineField.get(lexer);
+            assertFalse(inMultiLine, "Should not be in multi-line production initially");
+            
+            java.lang.reflect.Field multiLineStartLineField = GrammarLexer.class.getDeclaredField("multiLineStartLine");
+            multiLineStartLineField.setAccessible(true);
+            int multiLineStartLine = (Integer) multiLineStartLineField.get(lexer);
+            assertEquals(-1, multiLineStartLine, "Multi-line start line should be -1 initially");
+            
+        } catch (Exception e) {
+            fail("Failed to test multi-line infrastructure initialization: " + e.getMessage());
+        }
+    }
 }

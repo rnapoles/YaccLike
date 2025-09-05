@@ -1,6 +1,8 @@
 # Implementation Plan
 
-- [ ] 1. Add multi-line detection infrastructure to GrammarLexer
+- [-] 1. Add multi-line detection infrastructure to GrammarLexer
+
+
   - Add private fields for tracking multi-line state (tokenBuffer, inMultiLineProduction, multiLineStartLine)
   - Create helper method `isProductionContinuation()` to detect when a line continues a production rule
   - Create helper method `isAtLineStart()` to check if current position is at the beginning of a line

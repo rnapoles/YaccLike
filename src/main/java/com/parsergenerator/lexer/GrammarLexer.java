@@ -17,6 +17,11 @@ public class GrammarLexer {
     private int line;
     private int column;
     
+    // Multi-line detection infrastructure
+    private List<Token> tokenBuffer;
+    private boolean inMultiLineProduction;
+    private int multiLineStartLine;
+    
     /**
      * Creates a new grammar lexer for the specified input.
      * 
@@ -50,6 +55,11 @@ public class GrammarLexer {
         this.position = 0;
         this.line = 1;
         this.column = 1;
+        
+        // Initialize multi-line detection infrastructure
+        this.tokenBuffer = new ArrayList<>();
+        this.inMultiLineProduction = false;
+        this.multiLineStartLine = -1;
     }
     
     /**
@@ -389,5 +399,64 @@ public class GrammarLexer {
                 }
         }
         return "Check grammar syntax and remove invalid characters";
+    }
+    
+    /**
+     * Checks if the current line continues a production rule from the previous line.
+     * This method detects multi-line production patterns by looking for:
+     * 1. Lines that start with a pipe (|) character (after optional whitespace)
+     * 2. Previous lines that end with a pipe character
+     * 
+     * @return true if the current position indicates a production continuation
+     */
+    private boolean isProductionContinuation() {
+        if (isAtEnd()) {
+            return false;
+        }
+        
+        // Save current position to restore later
+        int savedPosition = position;
+        int savedLine = line;
+        int savedColumn = column;
+        
+        try {
+            // Skip any leading whitespace on the current line
+            while (!isAtEnd() && isWhitespace(peek()) && peek() != '\n') {
+                advance();
+            }
+            
+            // Check if we find a pipe character at the start of the line (after whitespace)
+            if (!isAtEnd() && peek() == '|') {
+                return true;
+            }
+            
+            return false;
+        } finally {
+            // Restore position
+            position = savedPosition;
+            line = savedLine;
+            column = savedColumn;
+        }
+    }
+    
+    /**
+     * Checks if the current position is at the beginning of a line.
+     * This considers the position to be at line start if:
+     * 1. We're at the very beginning of input (position 0)
+     * 2. The previous character was a newline (\n)
+     * 
+     * @return true if the current position is at the start of a line
+     */
+    private boolean isAtLineStart() {
+        if (position == 0) {
+            return true;
+        }
+        
+        if (position > 0 && position <= input.length()) {
+            char prevChar = input.charAt(position - 1);
+            return prevChar == '\n';
+        }
+        
+        return false;
     }
 }
