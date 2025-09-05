@@ -4,6 +4,8 @@ import com.parsergenerator.grammar.Grammar;
 import com.parsergenerator.symbol.Terminal;
 
 import java.util.*;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 
 /**
@@ -185,15 +187,27 @@ public class LexerCodeGenerator {
     
     /**
      * Prepares terminal information for template rendering.
+     * This method validates all terminal patterns and throws an exception
+     * if any pattern is invalid.
      *
      * @param grammar the grammar containing terminals
      * @return list of terminal information objects
+     * @throws TemplateException if any terminal pattern is invalid
      */
-    private List<TerminalInfo> prepareTerminalInfo(Grammar grammar) {
-        return grammar.getTerminals().stream()
-                .filter(Terminal::hasPattern)
-                .map(this::createTerminalInfo)
-                .collect(Collectors.toList());
+    private List<TerminalInfo> prepareTerminalInfo(Grammar grammar) throws TemplateException {
+        List<TerminalInfo> terminalInfos = new ArrayList<>();
+        
+        for (Terminal terminal : grammar.getTerminals()) {
+            // Always validate the pattern, even if it's empty or null
+            validateTerminalPattern(terminal);
+            
+            // Only include terminals with valid patterns in the result
+            if (terminal.hasPattern()) {
+                terminalInfos.add(createTerminalInfo(terminal));
+            }
+        }
+        
+        return terminalInfos;
     }
     
     /**
@@ -213,16 +227,31 @@ public class LexerCodeGenerator {
     
     /**
      * Generates terminal order for longest-match tokenization strategy.
+     * Orders terminals by pattern specificity and length to ensure
+     * longest and most specific matches are tried first.
      *
      * @param terminals list of terminal information
-     * @return ordered list of terminal names
+     * @return ordered list of terminal names for optimal matching
      */
     private List<String> generateTerminalOrder(List<TerminalInfo> terminals) {
-        // For now, use simple alphabetical order
-        // Later this can be enhanced with pattern length analysis
         return terminals.stream()
+                .sorted((t1, t2) -> {
+                    // First, sort by pattern specificity (more specific patterns first)
+                    int specificityCompare = Integer.compare(t2.getSpecificity(), t1.getSpecificity());
+                    if (specificityCompare != 0) {
+                        return specificityCompare;
+                    }
+                    
+                    // Then by pattern length (longer patterns first for longest-match)
+                    int lengthCompare = Integer.compare(t2.getPattern().length(), t1.getPattern().length());
+                    if (lengthCompare != 0) {
+                        return lengthCompare;
+                    }
+                    
+                    // Finally, alphabetical order for consistency
+                    return t1.getName().compareTo(t2.getName());
+                })
                 .map(TerminalInfo::getName)
-                .sorted()
                 .collect(Collectors.toList());
     }
     
@@ -332,6 +361,90 @@ public class LexerCodeGenerator {
     }
     
     /**
+     * Validates a terminal pattern for regex syntax and compilation.
+     *
+     * @param terminal the terminal to validate
+     * @throws TemplateException if the pattern is invalid
+     */
+    private void validateTerminalPattern(Terminal terminal) throws TemplateException {
+        String pattern = terminal.getPattern();
+        if (pattern == null || pattern.trim().isEmpty()) {
+            throw new TemplateException("Terminal '" + terminal.getName() + "' has empty pattern");
+        }
+        
+        try {
+            // Try to compile the pattern to validate syntax
+            Pattern.compile(pattern);
+        } catch (PatternSyntaxException e) {
+            throw new TemplateException("Invalid regex pattern for terminal '" + terminal.getName() + 
+                    "': " + e.getMessage() + " at position " + e.getIndex());
+        }
+        
+        // Additional validation for common issues
+        validatePatternFeatures(terminal.getName(), pattern);
+    }
+    
+    /**
+     * Validates specific pattern features and provides warnings for potential issues.
+     *
+     * @param terminalName the name of the terminal
+     * @param pattern the pattern to validate
+     * @throws TemplateException if the pattern has unsupported features
+     */
+    private void validatePatternFeatures(String terminalName, String pattern) throws TemplateException {
+        // Check for potentially problematic patterns
+        if (pattern.contains(".*") || pattern.contains(".+")) {
+            // Warn about greedy quantifiers that might cause issues
+            System.out.println("Warning: Terminal '" + terminalName + "' uses greedy quantifiers (.*/.+) " +
+                    "which may cause tokenization issues. Consider using non-greedy alternatives.");
+        }
+        
+        if (pattern.matches(".*\\\\[0-9]+.*")) {
+            // Check for backreferences which might not work as expected in tokenization
+            System.out.println("Warning: Terminal '" + terminalName + "' appears to use backreferences " +
+                    "which may not work correctly in lexical analysis.");
+        }
+        
+        // Check for anchors that don't make sense in tokenization context
+        if (pattern.startsWith("^") || pattern.endsWith("$")) {
+            System.out.println("Warning: Terminal '" + terminalName + "' uses line anchors (^/$) " +
+                    "which may not behave as expected in tokenization. Consider removing them.");
+        }
+    }
+    
+    /**
+     * Compares two patterns by specificity for ordering in longest-match tokenization.
+     * More specific patterns should be tried before less specific ones.
+     *
+     * @param pattern1 the first pattern
+     * @param pattern2 the second pattern
+     * @return negative if pattern1 is more specific, positive if pattern2 is more specific, 0 if equal
+     */
+    private int comparePatternSpecificity(String pattern1, String pattern2) {
+        int specificity1 = calculatePatternSpecificity(pattern1);
+        int specificity2 = calculatePatternSpecificity(pattern2);
+        return Integer.compare(specificity1, specificity2);
+    }
+    
+    /**
+     * Calculates a specificity score for a regex pattern.
+     * Higher scores indicate more specific patterns that should be tried first.
+     *
+     * @param pattern the pattern to analyze
+     * @return specificity score (higher = more specific)
+     */
+    private int calculatePatternSpecificity(String pattern) {
+        // Create a temporary TerminalInfo to use its specificity calculation
+        try {
+            TerminalInfo temp = new TerminalInfo("temp", pattern, "TEMP", "TEMP");
+            return temp.getSpecificity();
+        } catch (IllegalArgumentException e) {
+            // If pattern is invalid, return lowest specificity
+            return Integer.MIN_VALUE;
+        }
+    }
+    
+    /**
      * Converts a terminal name to a valid Java constant name.
      */
     private String toConstantName(String name) {
@@ -434,23 +547,78 @@ public class LexerCodeGenerator {
     
     /**
      * Data class to hold terminal information for template rendering.
+     * Includes compiled pattern for efficient matching during generation.
      */
     public static class TerminalInfo {
         private final String name;
         private final String pattern;
         private final String constantName;
         private final String enumConstant;
+        private final Pattern compiledPattern;
+        private final int specificity;
         
         public TerminalInfo(String name, String pattern, String constantName, String enumConstant) {
             this.name = name;
             this.pattern = pattern;
             this.constantName = constantName;
             this.enumConstant = enumConstant;
+            
+            // Compile pattern for validation and efficiency
+            try {
+                this.compiledPattern = Pattern.compile(pattern);
+            } catch (PatternSyntaxException e) {
+                throw new IllegalArgumentException("Invalid pattern for terminal '" + name + "': " + e.getMessage(), e);
+            }
+            
+            // Calculate specificity for ordering
+            this.specificity = calculateSpecificity(pattern);
         }
         
         public String getName() { return name; }
         public String getPattern() { return pattern; }
         public String getConstantName() { return constantName; }
         public String getEnumConstant() { return enumConstant; }
+        public Pattern getCompiledPattern() { return compiledPattern; }
+        public int getSpecificity() { return specificity; }
+        
+        /**
+         * Calculates specificity score for this terminal's pattern.
+         */
+        private int calculateSpecificity(String pattern) {
+            if (pattern == null || pattern.isEmpty()) {
+                return 0;
+            }
+            
+            int specificity = 0;
+            
+            // Literal characters increase specificity
+            for (char c : pattern.toCharArray()) {
+                if (Character.isLetterOrDigit(c)) {
+                    specificity += 10;
+                }
+            }
+            
+            // Character classes are less specific than literals
+            specificity -= pattern.split("\\[").length - 1;
+            
+            // Quantifiers reduce specificity
+            specificity -= pattern.split("\\*").length - 1;
+            specificity -= pattern.split("\\+").length - 1;
+            specificity -= pattern.split("\\?").length - 1;
+            
+            // Alternation reduces specificity
+            specificity -= pattern.split("\\|").length - 1;
+            
+            // Dot wildcard significantly reduces specificity
+            specificity -= (pattern.split("\\.").length - 1) * 5;
+            
+            return specificity;
+        }
+        
+        @Override
+        public String toString() {
+            return String.format("TerminalInfo{name='%s', pattern='%s', specificity=%d}", 
+                    name, pattern, specificity);
+        }
     }
 }

@@ -8,9 +8,7 @@
   - When every thing is ok, save the changes using `git` command.
   - _Requirements: 1.1, 3.1_
 
-- [-] 2. Implement lexer class template and basic generation
-
-
+- [x] 2. Implement lexer class template and basic generation
 
   - Create `lexer_class.peb` template for generating lexer classes from grammar terminals
   - Implement template variable preparation and rendering logic in `LexerCodeGenerator`
@@ -19,7 +17,10 @@
   - When every thing is ok, save the changes using `git` command.
   - _Requirements: 1.1, 3.1, 3.2, 3.3_
 
-- [ ] 3. Add tokenizer engine generation with pattern matching
+- [-] 3. Add tokenizer engine generation with pattern matching
+
+
+
   - Implement regex pattern compilation and validation for terminal definitions
   - Create tokenizer engine logic that handles pattern matching with proper precedence
   - Add support for longest-match tokenization strategy

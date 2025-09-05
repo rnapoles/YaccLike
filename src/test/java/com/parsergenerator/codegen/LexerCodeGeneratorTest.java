@@ -244,18 +244,17 @@ class LexerCodeGeneratorTest {
     }
     
     @Test
-    void testGrammarWithNoPatterns() throws TemplateException {
+    void testGrammarWithNoPatterns() {
         // Create a grammar with terminals that have no patterns
         Grammar emptyPatternGrammar = new Grammar();
         emptyPatternGrammar.addNonTerminal(new NonTerminal("expr"));
         emptyPatternGrammar.addTerminal(new Terminal("TOKEN1")); // No pattern
         emptyPatternGrammar.addTerminal(new Terminal("TOKEN2", "")); // Empty pattern
         
-        String lexerCode = generator.generateLexerClass(emptyPatternGrammar);
-        
-        assertNotNull(lexerCode);
-        // Should still generate basic structure even with no patterns
-        assertTrue(lexerCode.contains("public class TestGrammarLexer"));
+        // Should throw TemplateException due to invalid patterns
+        assertThrows(TemplateException.class, () -> {
+            generator.generateLexerClass(emptyPatternGrammar);
+        });
     }
     
     @Test

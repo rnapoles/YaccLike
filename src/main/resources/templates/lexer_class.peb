@@ -126,11 +126,12 @@ public class {{ className }} {
             }
         }
         
-        // Try to match each terminal pattern in order
+        // Use longest-match tokenization strategy with pattern precedence
         String bestMatch = null;
         String bestMatchedText = null;
         int bestMatchLength = 0;
         
+        // Try each terminal pattern in precedence order (already sorted by specificity)
         for (String terminalName : TERMINAL_ORDER) {
             Pattern pattern = PATTERN_MAP.get(terminalName);
             if (pattern != null) {
@@ -139,10 +140,14 @@ public class {{ className }} {
                 
                 if (matcher.lookingAt()) {
                     String matchedText = matcher.group();
-                    if (matchedText.length() > bestMatchLength) {
+                    int matchLength = matchedText.length();
+                    
+                    // Longest-match strategy: prefer longer matches
+                    // If same length, the first one in order wins (higher precedence)
+                    if (matchLength > bestMatchLength) {
                         bestMatch = terminalName;
                         bestMatchedText = matchedText;
-                        bestMatchLength = matchedText.length();
+                        bestMatchLength = matchLength;
                     }
                 }
             }
@@ -188,6 +193,35 @@ public class {{ className }} {
      */
     public boolean hasErrors() {
         return hasErrors;
+    }
+    
+    /**
+     * Finds all possible token matches at the current position.
+     * This is useful for debugging tokenization conflicts.
+     *
+     * @return list of all possible matches at the current position
+     */
+    public List<String> findAllMatchesAtCurrentPosition() {
+        List<String> matches = new ArrayList<>();
+        
+        if (position >= input.length()) {
+            return matches;
+        }
+        
+        for (String terminalName : TERMINAL_ORDER) {
+            Pattern pattern = PATTERN_MAP.get(terminalName);
+            if (pattern != null) {
+                Matcher matcher = pattern.matcher(input);
+                matcher.region(position, input.length());
+                
+                if (matcher.lookingAt()) {
+                    String matchedText = matcher.group();
+                    matches.add(terminalName + ": '" + matchedText + "' (length=" + matchedText.length() + ")");
+                }
+            }
+        }
+        
+        return matches;
     }
     
     /**

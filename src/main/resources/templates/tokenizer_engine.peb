@@ -28,6 +28,7 @@ public class TokenizerEngine {
     
     /**
      * Finds the next token match in the input starting at the given position.
+     * Uses longest-match tokenization strategy with pattern precedence.
      *
      * @param input the input string to tokenize
      * @param position the starting position in the input
@@ -42,7 +43,8 @@ public class TokenizerEngine {
         String bestMatchedText = null;
         int bestMatchLength = 0;
         
-        // Try each terminal pattern in order (longest match wins)
+        // Try each terminal pattern in precedence order
+        // The terminalOrder is already sorted by specificity and length
         for (String terminalName : terminalOrder) {
             Pattern pattern = terminalPatterns.get(terminalName);
             if (pattern != null) {
@@ -51,10 +53,15 @@ public class TokenizerEngine {
                 
                 if (matcher.lookingAt()) {
                     String matchedText = matcher.group();
-                    if (matchedText.length() > bestMatchLength) {
+                    int matchLength = matchedText.length();
+                    
+                    // For longest-match strategy, prefer longer matches
+                    // But also consider pattern precedence (order in terminalOrder)
+                    if (matchLength > bestMatchLength || 
+                        (matchLength == bestMatchLength && bestMatch == null)) {
                         bestMatch = terminalName;
                         bestMatchedText = matchedText;
-                        bestMatchLength = matchedText.length();
+                        bestMatchLength = matchLength;
                     }
                 }
             }
@@ -112,6 +119,53 @@ public class TokenizerEngine {
      */
     public int getTerminalCount() {
         return terminalPatterns.size();
+    }
+    
+    /**
+     * Finds all possible token matches at the given position.
+     * This is useful for debugging and understanding tokenization conflicts.
+     *
+     * @param input the input string to tokenize
+     * @param position the starting position in the input
+     * @return list of all possible matches at the position
+     */
+    public List<TokenMatch> findAllMatches(String input, int position) {
+        List<TokenMatch> matches = new ArrayList<>();
+        
+        if (input == null || position >= input.length()) {
+            return matches;
+        }
+        
+        for (String terminalName : terminalOrder) {
+            Pattern pattern = terminalPatterns.get(terminalName);
+            if (pattern != null) {
+                Matcher matcher = pattern.matcher(input);
+                matcher.region(position, input.length());
+                
+                if (matcher.lookingAt()) {
+                    String matchedText = matcher.group();
+                    matches.add(new TokenMatch(terminalName, matchedText, position, 
+                            position + matchedText.length(), true));
+                }
+            }
+        }
+        
+        return matches;
+    }
+    
+    /**
+     * Validates that all patterns in this engine are properly compiled.
+     *
+     * @return true if all patterns are valid, false otherwise
+     */
+    public boolean validatePatterns() {
+        for (Map.Entry<String, Pattern> entry : terminalPatterns.entrySet()) {
+            if (entry.getValue() == null) {
+                System.err.println("Warning: Terminal '" + entry.getKey() + "' has null pattern");
+                return false;
+            }
+        }
+        return true;
     }
     
     /**
