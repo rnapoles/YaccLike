@@ -1,0 +1,29 @@
+package {{ packageName }};
+
+import java.util.List;
+
+/**
+ * Base class for all AST nodes in the {{ grammarName }} grammar.
+ */
+public abstract class {{ className }} {
+    
+    /**
+     * Returns the type of this AST node.
+     */
+    public abstract String getNodeType();
+    
+    /**
+     * Returns the children of this node.
+     */
+    public abstract List<{{ className }}> getChildren();
+    
+    /**
+     * Checks if this is a terminal node.
+     */
+    public abstract boolean isTerminal();
+    
+    /**
+     * Accepts a visitor for traversing the AST.
+     */
+    public abstract <T> T accept(ASTVisitor<T> visitor);
+}

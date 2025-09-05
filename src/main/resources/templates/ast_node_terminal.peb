@@ -1,0 +1,44 @@
+package {{ packageName }};
+
+import java.util.Collections;
+import java.util.List;
+
+/**
+ * AST node representing a terminal symbol.
+ */
+public class {{ className }} extends {{ baseClassName }} {
+    private final Token token;
+    
+    public {{ className }}(Token token) {
+        this.token = token;
+    }
+    
+    public Token getToken() {
+        return token;
+    }
+    
+    @Override
+    public String getNodeType() {
+        return token.getType().name();
+    }
+    
+    @Override
+    public List<{{ baseClassName }}> getChildren() {
+        return Collections.emptyList();
+    }
+    
+    @Override
+    public boolean isTerminal() {
+        return true;
+    }
+    
+    @Override
+    public <T> T accept(ASTVisitor<T> visitor) {
+        return visitor.visitTerminal(this);
+    }
+    
+    @Override
+    public String toString() {
+        return token.toString();
+    }
+}

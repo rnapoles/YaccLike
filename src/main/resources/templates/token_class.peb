@@ -1,0 +1,70 @@
+package {{ packageName }};
+
+/**
+ * Represents a token in the {{ grammarName }} grammar.
+ */
+public class Token {
+    private final TokenType type;
+    private final String value;
+    private final Position position;
+    
+    /**
+     * Creates a new token.
+     *
+     * @param type the token type
+     * @param value the token value
+     * @param position the token position in source
+     */
+    public Token(TokenType type, String value, Position position) {
+        this.type = type;
+        this.value = value;
+        this.position = position;
+    }
+    
+    /**
+     * Returns the token type.
+     */
+    public TokenType getType() {
+        return type;
+    }
+    
+    /**
+     * Returns the token value.
+     */
+    public String getValue() {
+        return value;
+    }
+    
+    /**
+     * Returns the token position.
+     */
+    public Position getPosition() {
+        return position;
+    }
+    
+    @Override
+    public String toString() {
+        return type + "(" + value + ")";
+    }
+    
+    /**
+     * Represents a position in the source code.
+     */
+    public static class Position {
+        private final int line;
+        private final int column;
+        
+        public Position(int line, int column) {
+            this.line = line;
+            this.column = column;
+        }
+        
+        public int getLine() { return line; }
+        public int getColumn() { return column; }
+        
+        @Override
+        public String toString() {
+            return line + ":" + column;
+        }
+    }
+}

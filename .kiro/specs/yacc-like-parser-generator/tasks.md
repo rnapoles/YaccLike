@@ -167,12 +167,7 @@
 
 - [-] 10. Implement Java code generation
 
-
-
-
-
-- [-] 10.1 Create code generation templates and utilities
-
+- [x] 10.1 Create code generation templates and utilities
 
   - Write CodeTemplate class for managing Java code templates
   - Create templates for parser class, token classes, and AST nodes

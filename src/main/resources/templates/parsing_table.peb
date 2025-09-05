@@ -1,0 +1,26 @@
+package {{ packageName }};
+
+/**
+ * Contains the parsing tables for the {{ grammarName }} grammar.
+ */
+public class ParsingTables {
+    
+    // Action table: ACTION_TABLE[state][terminal] = action
+    // Positive values: shift to state (value - 1)
+    // Negative values: reduce by production (-value - 1)
+    // Zero: accept
+    // -1: error
+    public static final int[][] ACTION_TABLE = {{ actionTable | raw }};
+    
+    // GOTO table: GOTO_TABLE[state][nonterminal] = next_state
+    // -1 indicates error (no transition)
+    public static final int[][] GOTO_TABLE = {{ gotoTable | raw }};
+    
+    // Production information
+    public static final int[] PRODUCTION_LENGTHS = {{ productionLengths | raw }};
+    public static final int[] PRODUCTION_LEFT_SIDES = {{ productionLeftSides | raw }};
+    
+    // Symbol names for debugging
+    public static final String[] TERMINAL_NAMES = {{ terminalNames | raw }};
+    public static final String[] NONTERMINAL_NAMES = {{ nonterminalNames | raw }};
+}

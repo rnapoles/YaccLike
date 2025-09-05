@@ -1,0 +1,47 @@
+package {{ packageName }};
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+/**
+ * AST node representing the non-terminal {{ symbolName }}.
+ */
+public class {{ className }} extends {{ baseClassName }} {
+    private final List<{{ baseClassName }}> children;
+    private final int productionNumber;
+    
+    public {{ className }}(int productionNumber, List<{{ baseClassName }}> children) {
+        this.productionNumber = productionNumber;
+        this.children = new ArrayList<>(children);
+    }
+    
+    public int getProductionNumber() {
+        return productionNumber;
+    }
+    
+    @Override
+    public String getNodeType() {
+        return "{{ symbolName }}";
+    }
+    
+    @Override
+    public List<{{ baseClassName }}> getChildren() {
+        return Collections.unmodifiableList(children);
+    }
+    
+    @Override
+    public boolean isTerminal() {
+        return false;
+    }
+    
+    @Override
+    public <T> T accept(ASTVisitor<T> visitor) {
+        return visitor.visit{{ symbolName }}(this);
+    }
+    
+    @Override
+    public String toString() {
+        return "{{ symbolName }}(" + children.size() + " children)";
+    }
+}

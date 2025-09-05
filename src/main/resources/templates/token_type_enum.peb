@@ -1,0 +1,9 @@
+package {{ packageName }};
+
+/**
+ * Token types for the {{ grammarName }} grammar.
+ */
+public enum TokenType {
+    {{ tokenTypes | join(', ') }},
+    EOF
+}
