@@ -3,6 +3,10 @@ package {{ packageName }};
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import com.parsergenerator.lexer.Token;
+import com.parsergenerator.lexer.TokenType;
+import com.parsergenerator.lexer.Position;
+import com.parsergenerator.lexer.LexicalException;
 
 /**
  * Generated lexer class for {{ grammarName }} grammar.

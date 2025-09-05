@@ -211,7 +211,7 @@ class LexerCodeGeneratorTest {
         GeneratedCode result = generator.generateLexer(testGrammar);
         
         assertNotNull(result);
-        assertEquals(2, result.getFileCount());
+        assertEquals(1, result.getFileCount()); // Only lexer class, LexicalException exists in main package
         
         // Verify lexer class file
         assertTrue(result.hasFile("TestGrammarLexer.java"));
@@ -219,11 +219,14 @@ class LexerCodeGeneratorTest {
         assertNotNull(lexerCode);
         assertTrue(lexerCode.contains("public class TestGrammarLexer"));
         
-        // Verify exception class file
-        assertTrue(result.hasFile("LexicalException.java"));
-        String exceptionCode = result.getFileContent("LexicalException.java");
-        assertNotNull(exceptionCode);
-        assertTrue(exceptionCode.contains("public class LexicalException"));
+        // Verify that the lexer imports the existing LexicalException
+        assertTrue(lexerCode.contains("com.parsergenerator.lexer.LexicalException"));
+        
+        // Verify position tracking functionality is included
+        assertTrue(lexerCode.contains("getCurrentPosition()"));
+        assertTrue(lexerCode.contains("hasErrors()"));
+        assertTrue(lexerCode.contains("updatePosition"));
+        assertTrue(lexerCode.contains("skipWhitespace"));
     }
     
     @Test

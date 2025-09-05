@@ -94,9 +94,8 @@ public class LexerCodeGenerator {
         String lexerCode = generateLexerClass(grammar);
         result.addFile(grammarName + "Lexer.java", lexerCode);
         
-        // Generate lexical exception class
-        String exceptionCode = generateLexicalException();
-        result.addFile("LexicalException.java", exceptionCode);
+        // Note: LexicalException already exists in com.parsergenerator.lexer package
+        // and will be imported by the generated lexer class
         
         return result;
     }
@@ -265,18 +264,28 @@ public class LexerCodeGenerator {
         sb.append("package ").append(variables.get("packageName")).append(";\n\n");
         sb.append("import java.util.*;\n");
         sb.append("import java.util.regex.Pattern;\n");
-        sb.append("import java.util.regex.Matcher;\n\n");
+        sb.append("import java.util.regex.Matcher;\n");
+        sb.append("import com.parsergenerator.lexer.Token;\n");
+        sb.append("import com.parsergenerator.lexer.TokenType;\n");
+        sb.append("import com.parsergenerator.lexer.Position;\n");
+        sb.append("import com.parsergenerator.lexer.LexicalException;\n\n");
         
         sb.append("/**\n");
         sb.append(" * Generated lexer class for ").append(variables.get("grammarName")).append(" grammar.\n");
-        sb.append(" * This class tokenizes input text according to terminal definitions.\n");
+        sb.append(" * This class tokenizes input text according to terminal definitions with\n");
+        sb.append(" * comprehensive position tracking and error reporting.\n");
         sb.append(" */\n");
         sb.append("public class ").append(variables.get("className")).append(" {\n");
         sb.append("    private final String input;\n");
         sb.append("    private final String filename;\n");
         sb.append("    private int position;\n");
         sb.append("    private int line;\n");
-        sb.append("    private int column;\n\n");
+        sb.append("    private int column;\n");
+        sb.append("    private int startPosition;\n");
+        sb.append("    private int startLine;\n");
+        sb.append("    private int startColumn;\n");
+        sb.append("    private boolean hasErrors;\n");
+        sb.append("    private final List<LexicalException> errors;\n\n");
         
         // Add terminal patterns
         @SuppressWarnings("unchecked")
@@ -286,6 +295,25 @@ public class LexerCodeGenerator {
                 sb.append("    private static final Pattern ").append(terminal.getConstantName())
                   .append(" = Pattern.compile(\"").append(escapePattern(terminal.getPattern())).append("\");\n");
             }
+        }
+        
+        // Add whitespace pattern for skipping
+        sb.append("    private static final Pattern WHITESPACE_PATTERN = Pattern.compile(\"\\\\s+\");\n");
+        
+        // Add terminal order array
+        @SuppressWarnings("unchecked")
+        List<String> terminalOrder = (List<String>) variables.get("terminalOrder");
+        if (terminalOrder != null && !terminalOrder.isEmpty()) {
+            sb.append("\n    // Terminal matching order (longest match first)\n");
+            sb.append("    private static final String[] TERMINAL_ORDER = {\n");
+            for (int i = 0; i < terminalOrder.size(); i++) {
+                sb.append("        \"").append(terminalOrder.get(i)).append("\"");
+                if (i < terminalOrder.size() - 1) {
+                    sb.append(",");
+                }
+                sb.append("\n");
+            }
+            sb.append("    };\n");
         }
         
         sb.append("\n    public ").append(variables.get("className")).append("(String input) {\n");
@@ -298,10 +326,222 @@ public class LexerCodeGenerator {
         sb.append("        this.position = 0;\n");
         sb.append("        this.line = 1;\n");
         sb.append("        this.column = 1;\n");
+        sb.append("        this.startPosition = 0;\n");
+        sb.append("        this.startLine = 1;\n");
+        sb.append("        this.startColumn = 1;\n");
+        sb.append("        this.hasErrors = false;\n");
+        sb.append("        this.errors = new ArrayList<>();\n");
         sb.append("    }\n\n");
         
-        sb.append("    // TODO: Implement tokenization methods\n");
-        sb.append("    // This will be completed in subsequent tasks\n");
+        // Add position tracking methods
+        sb.append("    /**\n");
+        sb.append("     * Gets the current position in the input.\n");
+        sb.append("     * @return the current position\n");
+        sb.append("     */\n");
+        sb.append("    public Position getCurrentPosition() {\n");
+        sb.append("        return new Position(line, column, filename);\n");
+        sb.append("    }\n\n");
+        
+        sb.append("    /**\n");
+        sb.append("     * Gets the position where the current token started.\n");
+        sb.append("     * @return the start position of the current token\n");
+        sb.append("     */\n");
+        sb.append("    public Position getStartPosition() {\n");
+        sb.append("        return new Position(startLine, startColumn, filename);\n");
+        sb.append("    }\n\n");
+        
+        sb.append("    /**\n");
+        sb.append("     * Checks if the lexer has encountered any errors.\n");
+        sb.append("     * @return true if errors were encountered\n");
+        sb.append("     */\n");
+        sb.append("    public boolean hasErrors() {\n");
+        sb.append("        return hasErrors;\n");
+        sb.append("    }\n\n");
+        
+        sb.append("    /**\n");
+        sb.append("     * Gets all lexical errors encountered during tokenization.\n");
+        sb.append("     * @return list of lexical errors\n");
+        sb.append("     */\n");
+        sb.append("    public List<LexicalException> getErrors() {\n");
+        sb.append("        return new ArrayList<>(errors);\n");
+        sb.append("    }\n\n");
+        
+        sb.append("    /**\n");
+        sb.append("     * Checks if there are more tokens to process.\n");
+        sb.append("     * @return true if more tokens are available\n");
+        sb.append("     */\n");
+        sb.append("    public boolean hasMoreTokens() {\n");
+        sb.append("        return position < input.length();\n");
+        sb.append("    }\n\n");
+        
+        // Add position advancement methods
+        sb.append("    /**\n");
+        sb.append("     * Advances position by the specified number of characters.\n");
+        sb.append("     * Updates line and column tracking appropriately.\n");
+        sb.append("     * @param count number of characters to advance\n");
+        sb.append("     */\n");
+        sb.append("    private void advancePosition(int count) {\n");
+        sb.append("        for (int i = 0; i < count && position < input.length(); i++) {\n");
+        sb.append("            char c = input.charAt(position);\n");
+        sb.append("            position++;\n");
+        sb.append("            if (c == '\\n') {\n");
+        sb.append("                line++;\n");
+        sb.append("                column = 1;\n");
+        sb.append("            } else if (c == '\\r') {\n");
+        sb.append("                // Handle \\r\\n and standalone \\r\n");
+        sb.append("                if (position < input.length() && input.charAt(position) == '\\n') {\n");
+        sb.append("                    position++;\n");
+        sb.append("                    i++; // Count the \\n as well\n");
+        sb.append("                }\n");
+        sb.append("                line++;\n");
+        sb.append("                column = 1;\n");
+        sb.append("            } else {\n");
+        sb.append("                column++;\n");
+        sb.append("            }\n");
+        sb.append("        }\n");
+        sb.append("    }\n\n");
+        
+        sb.append("    /**\n");
+        sb.append("     * Marks the start of a new token at the current position.\n");
+        sb.append("     */\n");
+        sb.append("    private void markTokenStart() {\n");
+        sb.append("        startPosition = position;\n");
+        sb.append("        startLine = line;\n");
+        sb.append("        startColumn = column;\n");
+        sb.append("    }\n\n");
+        
+        sb.append("    /**\n");
+        sb.append("     * Skips whitespace characters and updates position tracking.\n");
+        sb.append("     */\n");
+        sb.append("    private void skipWhitespace() {\n");
+        sb.append("        while (position < input.length()) {\n");
+        sb.append("            Matcher matcher = WHITESPACE_PATTERN.matcher(input);\n");
+        sb.append("            matcher.region(position, input.length());\n");
+        sb.append("            if (matcher.lookingAt()) {\n");
+        sb.append("                advancePosition(matcher.end() - matcher.start());\n");
+        sb.append("            } else {\n");
+        sb.append("                break;\n");
+        sb.append("            }\n");
+        sb.append("        }\n");
+        sb.append("    }\n\n");
+        
+        // Add error reporting method
+        sb.append("    /**\n");
+        sb.append("     * Reports a lexical error with detailed position information and suggestions.\n");
+        sb.append("     * @param message the error message\n");
+        sb.append("     * @param unexpectedInput the input that caused the error\n");
+        sb.append("     * @param suggestion optional suggestion for fixing the error\n");
+        sb.append("     */\n");
+        sb.append("    private void reportError(String message, String unexpectedInput, String suggestion) {\n");
+        sb.append("        Position errorPos = new Position(line, column, filename);\n");
+        sb.append("        LexicalException error = new LexicalException(message, errorPos, unexpectedInput, suggestion);\n");
+        sb.append("        errors.add(error);\n");
+        sb.append("        hasErrors = true;\n");
+        sb.append("    }\n\n");
+        
+        // Add next token method
+        sb.append("    /**\n");
+        sb.append("     * Gets the next token from the input.\n");
+        sb.append("     * @return the next token, or EOF token if no more input\n");
+        sb.append("     * @throws LexicalException if tokenization fails\n");
+        sb.append("     */\n");
+        sb.append("    public Token nextToken() throws LexicalException {\n");
+        sb.append("        skipWhitespace();\n");
+        sb.append("        \n");
+        sb.append("        if (position >= input.length()) {\n");
+        sb.append("            return new Token(TokenType.EOF, \"\", getCurrentPosition());\n");
+        sb.append("        }\n");
+        sb.append("        \n");
+        sb.append("        markTokenStart();\n");
+        sb.append("        \n");
+        sb.append("        // Try to match each terminal pattern in order\n");
+        if (terminals != null && !terminals.isEmpty()) {
+            sb.append("        String remainingInput = input.substring(position);\n");
+            sb.append("        \n");
+            for (TerminalInfo terminal : terminals) {
+                sb.append("        // Try to match ").append(terminal.getName()).append("\n");
+                sb.append("        Matcher ").append(terminal.getName().toLowerCase()).append("Matcher = ")
+                  .append(terminal.getConstantName()).append(".matcher(remainingInput);\n");
+                sb.append("        if (").append(terminal.getName().toLowerCase()).append("Matcher.lookingAt()) {\n");
+                sb.append("            String matchedText = ").append(terminal.getName().toLowerCase())
+                  .append("Matcher.group();\n");
+                sb.append("            advancePosition(matchedText.length());\n");
+                sb.append("            return new Token(TokenType.TERMINAL, matchedText, getStartPosition());\n");
+                sb.append("        }\n");
+                sb.append("        \n");
+            }
+        }
+        
+        sb.append("        // No pattern matched - report error\n");
+        sb.append("        char unexpectedChar = input.charAt(position);\n");
+        sb.append("        String unexpectedInput = String.valueOf(unexpectedChar);\n");
+        sb.append("        String suggestion = generateSuggestion(unexpectedChar);\n");
+        sb.append("        \n");
+        sb.append("        reportError(\"Unexpected character: '\" + unexpectedChar + \"'\", \n");
+        sb.append("                   unexpectedInput, suggestion);\n");
+        sb.append("        \n");
+        sb.append("        // Advance past the problematic character to continue tokenization\n");
+        sb.append("        advancePosition(1);\n");
+        sb.append("        \n");
+        sb.append("        throw new LexicalException(\"Unexpected character: '\" + unexpectedChar + \"'\", \n");
+        sb.append("                                  getStartPosition(), unexpectedInput, suggestion);\n");
+        sb.append("    }\n\n");
+        
+        // Add tokenize method
+        sb.append("    /**\n");
+        sb.append("     * Tokenizes the entire input and returns a list of tokens.\n");
+        sb.append("     * @return list of all tokens in the input\n");
+        sb.append("     * @throws LexicalException if tokenization fails\n");
+        sb.append("     */\n");
+        sb.append("    public List<Token> tokenize() throws LexicalException {\n");
+        sb.append("        List<Token> tokens = new ArrayList<>();\n");
+        sb.append("        \n");
+        sb.append("        while (hasMoreTokens()) {\n");
+        sb.append("            Token token = nextToken();\n");
+        sb.append("            if (token.getType() != TokenType.EOF) {\n");
+        sb.append("                tokens.add(token);\n");
+        sb.append("            }\n");
+        sb.append("        }\n");
+        sb.append("        \n");
+        sb.append("        // Add EOF token\n");
+        sb.append("        tokens.add(new Token(TokenType.EOF, \"\", getCurrentPosition()));\n");
+        sb.append("        \n");
+        sb.append("        return tokens;\n");
+        sb.append("    }\n\n");
+        
+        // Add suggestion generation method
+        sb.append("    /**\n");
+        sb.append("     * Generates helpful suggestions for unexpected characters.\n");
+        sb.append("     * @param unexpectedChar the character that caused the error\n");
+        sb.append("     * @return a suggestion string, or null if no suggestion available\n");
+        sb.append("     */\n");
+        sb.append("    private String generateSuggestion(char unexpectedChar) {\n");
+        sb.append("        switch (unexpectedChar) {\n");
+        sb.append("            case '\"':\n");
+        sb.append("                return \"Did you mean to use single quotes instead?\";\n");
+        sb.append("            case '\\'':\n");
+        sb.append("                return \"Did you mean to use double quotes instead?\";\n");
+        sb.append("            case '{':\n");
+        sb.append("            case '}':\n");
+        sb.append("                return \"Curly braces might not be supported in this grammar\";\n");
+        sb.append("            case '[':\n");
+        sb.append("            case ']':\n");
+        sb.append("                return \"Square brackets might not be supported in this grammar\";\n");
+        sb.append("            case '@':\n");
+        sb.append("            case '#':\n");
+        sb.append("            case '$':\n");
+        sb.append("            case '%':\n");
+        sb.append("                return \"Special characters like '\" + unexpectedChar + \"' might not be supported\";\n");
+        sb.append("            default:\n");
+        sb.append("                if (Character.isLetter(unexpectedChar)) {\n");
+        sb.append("                    return \"Check if this identifier is properly defined in the grammar\";\n");
+        sb.append("                } else if (Character.isDigit(unexpectedChar)) {\n");
+        sb.append("                    return \"Check if numeric literals are properly defined in the grammar\";\n");
+        sb.append("                } else {\n");
+        sb.append("                    return \"This character might not be supported by the grammar\";\n");
+        sb.append("                }\n");
+        sb.append("        }\n");
+        sb.append("    }\n");
         
         sb.append("}\n");
         
@@ -331,30 +571,87 @@ public class LexerCodeGenerator {
     
     /**
      * Generates basic lexical exception structure without template.
+     * Note: This is a fallback - the main LexicalException class already exists
+     * in com.parsergenerator.lexer package and should be used instead.
      */
     private String generateBasicLexicalException(Map<String, Object> variables) {
         StringBuilder sb = new StringBuilder();
         
         sb.append("package ").append(variables.get("packageName")).append(";\n\n");
+        sb.append("import com.parsergenerator.lexer.Position;\n\n");
         
         sb.append("/**\n");
         sb.append(" * Exception thrown when lexical analysis fails.\n");
+        sb.append(" * This exception provides detailed information about the location and nature\n");
+        sb.append(" * of lexical errors encountered during tokenization.\n");
         sb.append(" */\n");
         sb.append("public class LexicalException extends Exception {\n");
         sb.append("    private final int line;\n");
         sb.append("    private final int column;\n");
-        sb.append("    private final String unexpectedInput;\n\n");
+        sb.append("    private final String unexpectedInput;\n");
+        sb.append("    private final String suggestion;\n\n");
         
+        sb.append("    /**\n");
+        sb.append("     * Creates a new LexicalException with the specified message and position.\n");
+        sb.append("     */\n");
         sb.append("    public LexicalException(String message, int line, int column, String unexpectedInput) {\n");
+        sb.append("        this(message, line, column, unexpectedInput, null);\n");
+        sb.append("    }\n\n");
+        
+        sb.append("    /**\n");
+        sb.append("     * Creates a new LexicalException with the specified message, position, and suggestion.\n");
+        sb.append("     */\n");
+        sb.append("    public LexicalException(String message, int line, int column, String unexpectedInput, String suggestion) {\n");
         sb.append("        super(message);\n");
         sb.append("        this.line = line;\n");
         sb.append("        this.column = column;\n");
         sb.append("        this.unexpectedInput = unexpectedInput;\n");
+        sb.append("        this.suggestion = suggestion;\n");
+        sb.append("    }\n\n");
+        
+        sb.append("    /**\n");
+        sb.append("     * Creates a new LexicalException from a Position object.\n");
+        sb.append("     */\n");
+        sb.append("    public LexicalException(String message, Position position, String unexpectedInput) {\n");
+        sb.append("        this(message, position.getLine(), position.getColumn(), unexpectedInput, null);\n");
+        sb.append("    }\n\n");
+        
+        sb.append("    /**\n");
+        sb.append("     * Creates a new LexicalException from a Position object with suggestion.\n");
+        sb.append("     */\n");
+        sb.append("    public LexicalException(String message, Position position, String unexpectedInput, String suggestion) {\n");
+        sb.append("        this(message, position.getLine(), position.getColumn(), unexpectedInput, suggestion);\n");
         sb.append("    }\n\n");
         
         sb.append("    public int getLine() { return line; }\n");
         sb.append("    public int getColumn() { return column; }\n");
         sb.append("    public String getUnexpectedInput() { return unexpectedInput; }\n");
+        sb.append("    public String getSuggestion() { return suggestion; }\n\n");
+        
+        sb.append("    public boolean hasSuggestion() {\n");
+        sb.append("        return suggestion != null && !suggestion.trim().isEmpty();\n");
+        sb.append("    }\n\n");
+        
+        sb.append("    public Position getPosition() {\n");
+        sb.append("        return new Position(line, column);\n");
+        sb.append("    }\n\n");
+        
+        sb.append("    @Override\n");
+        sb.append("    public String toString() {\n");
+        sb.append("        StringBuilder sb = new StringBuilder();\n");
+        sb.append("        sb.append(\"LexicalException at \").append(line).append(\":\").append(column);\n");
+        sb.append("        sb.append(\": \").append(getMessage());\n");
+        sb.append("        \n");
+        sb.append("        if (unexpectedInput != null && !unexpectedInput.isEmpty()) {\n");
+        sb.append("            sb.append(\" (unexpected input: '\").append(unexpectedInput).append(\"')\");\n");
+        sb.append("        }\n");
+        sb.append("        \n");
+        sb.append("        if (hasSuggestion()) {\n");
+        sb.append("            sb.append(\" - Suggestion: \").append(suggestion);\n");
+        sb.append("        }\n");
+        sb.append("        \n");
+        sb.append("        return sb.toString();\n");
+        sb.append("    }\n");
         sb.append("}\n");
         
         return sb.toString();

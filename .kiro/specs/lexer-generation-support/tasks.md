@@ -17,9 +17,7 @@
   - When every thing is ok, save the changes using `git` command.
   - _Requirements: 1.1, 3.1, 3.2, 3.3_
 
-- [-] 3. Add tokenizer engine generation with pattern matching
-
-
+- [x] 3. Add tokenizer engine generation with pattern matching
 
   - Implement regex pattern compilation and validation for terminal definitions
   - Create tokenizer engine logic that handles pattern matching with proper precedence
@@ -28,7 +26,10 @@
   - When every thing is ok, save the changes using `git` command.
   - _Requirements: 1.1, 1.2, 4.1, 4.2, 4.3, 4.4_
 
-- [ ] 4. Implement position tracking and error handling
+- [-] 4. Implement position tracking and error handling
+
+
+
   - Add line, column, and character position tracking to generated lexers
   - Create `LexicalException` class for lexer-specific errors
   - Implement detailed error reporting with position information and suggestions
