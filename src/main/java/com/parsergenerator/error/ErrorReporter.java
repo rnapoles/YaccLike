@@ -96,7 +96,11 @@ public class ErrorReporter {
                            Position position, String context, String suggestion) {
         ErrorReport report = new ErrorReport(severity, type, message, position, context, suggestion);
         errors.add(report);
-        errorCounts.put(type, errorCounts.get(type) + 1);
+        
+        // Only count actual errors and warnings in errorCounts, not INFO messages
+        if (severity == Severity.ERROR || severity == Severity.WARNING) {
+            errorCounts.put(type, errorCounts.get(type) + 1);
+        }
         
         if (severity == Severity.ERROR) {
             hasErrors = true;
@@ -309,7 +313,10 @@ public class ErrorReporter {
      * @return a formatted error summary string
      */
     public String generateSummary() {
-        if (errors.isEmpty()) {
+        int errorCount = getErrorCount();
+        int warningCount = getWarningCount();
+        
+        if (errorCount == 0 && warningCount == 0) {
             return "No errors or warnings reported.";
         }
         
@@ -317,12 +324,9 @@ public class ErrorReporter {
         sb.append("Error Summary:\n");
         sb.append("=============\n");
         
-        int errorCount = getErrorCount();
-        int warningCount = getWarningCount();
-        
         sb.append(String.format("Total: %d error(s), %d warning(s)\n\n", errorCount, warningCount));
         
-        // Group errors by type
+        // Group errors by type (only show types that have actual errors/warnings)
         for (ErrorType type : ErrorType.values()) {
             int count = errorCounts.get(type);
             if (count > 0) {

@@ -832,6 +832,11 @@ public class GrammarParser {
         // Check for undefined non-terminals
         for (String used : usedNonTerminals) {
             if (!definedNonTerminals.contains(used)) {
+                String message = "Non-terminal '" + used + "' used but not defined";
+                String context = "Symbol: " + used;
+                String suggestion = "Define the non-terminal '" + used + "' or remove its usage";
+                
+                errorReporter.reportSemanticError(message, context, suggestion);
                 throw new SemanticErrorException("Non-terminal used but not defined", 
                                                null, used, "undefined_nonterminal");
             }

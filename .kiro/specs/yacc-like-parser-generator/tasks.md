@@ -225,7 +225,10 @@
   - Create the required commits by running the `git commit` command
   - _Requirements: 4.6, 5.1, 5.4_
 
-- [-] 12. Test with arithmetic grammar example
+- [x] 12. Test with arithmetic grammar example
+
+
+
 
 - [x] 12.1 Implement arithmetic grammar test case
 
@@ -248,7 +251,9 @@
   - Create the required commits by running the `git commit` command
   - _Requirements: 6.3, 6.4, 6.5_
 
-- [-] 13. Create comprehensive test suite and documentation
+- [ ] 13. Create comprehensive test suite and documentation
+
+
 
 
 
@@ -263,7 +268,8 @@
   - Create the required commits by running the `git commit` command
   - _Requirements: 2.6, 4.1, 5.5_
 
-- [-] 13.2 Add example grammars and usage documentation
+- [x] 13.2 Add example grammars and usage documentation
+
 
   - Create collection of example grammars demonstrating tool capabilities
   - Write comprehensive documentation for grammar syntax and tool usage

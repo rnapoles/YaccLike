@@ -210,7 +210,7 @@ class ParserGeneratorTest {
             <Statement> ::= <Assignment> SEMICOLON | <FunctionCall> SEMICOLON
             <Assignment> ::= ID ASSIGN <Expression>
             <FunctionCall> ::= ID LPAREN <ArgumentList> RPAREN
-            <ArgumentList> ::= <Expression> COMMA <ArgumentList> | <Expression> | 
+            <ArgumentList> ::= <Expression> COMMA <ArgumentList> | <Expression>
             <Expression> ::= ID | NUMBER | STRING
             """;
         

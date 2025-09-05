@@ -263,8 +263,8 @@ public class ErrorReportingIntegrationTest {
                             "LPAREN = {\\(}\n" +
                             "RPAREN = {\\)}\n" +
                             "Start = <expr>\n" +
-                            "<expr> ::= <expr> PLUS <term> | <term>\n" +
-                            "<term> ::= <term> MULT <factor> | <factor>\n" +
+                            "<expr> ::= <term> PLUS <expr> | <term>\n" +
+                            "<term> ::= <factor> MULT <term> | <factor>\n" +
                             "<factor> ::= NUM | LPAREN <expr> RPAREN";
         
         GrammarLexer lexer = new GrammarLexer(validGrammar, "test.grammar", errorReporter);

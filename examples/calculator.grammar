@@ -29,8 +29,8 @@ Start = <Program>
 <Expression> ::= <Term> PLUS <Expression> | <Term> MINUS <Expression> | <Term>
 <Term> ::= <Factor> MULTIPLY <Term> | <Factor> DIVIDE <Term> | <Factor>
 <Factor> ::= <Base> POWER <Factor> | <Base>
-<Base> ::= NUMBER | IDENTIFIER | <FunctionCall> | LPAREN <Expression> RPAREN
+<Base> ::= NUMBER | IDENTIFIER | <FunctionCall> | LPAREN <Expression> RPAREN | MINUS <Base>
 
 -- Function calls with arguments
 <FunctionCall> ::= IDENTIFIER LPAREN <ArgumentList> RPAREN
-<ArgumentList> ::= <Expression> | <Expression> COMMA <ArgumentList> | 
+<ArgumentList> ::= <Expression> | <Expression> COMMA <ArgumentList>
