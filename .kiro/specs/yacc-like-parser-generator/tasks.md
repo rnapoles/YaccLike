@@ -252,7 +252,8 @@
 
 
 
-- [-] 13.1 Implement integration tests for complete system
+- [x] 13.1 Implement integration tests for complete system
+
 
   - Write tests covering the entire grammar-to-parser pipeline
   - Create test cases for various grammar types and complexity levels
@@ -262,7 +263,8 @@
   - Create the required commits by running the `git commit` command
   - _Requirements: 2.6, 4.1, 5.5_
 
-- [ ] 13.2 Add example grammars and usage documentation
+- [-] 13.2 Add example grammars and usage documentation
+
   - Create collection of example grammars demonstrating tool capabilities
   - Write comprehensive documentation for grammar syntax and tool usage
   - Add troubleshooting guide for common grammar issues

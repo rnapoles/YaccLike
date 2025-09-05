@@ -1,0 +1,36 @@
+-- Extended Calculator Grammar
+-- Supports multiple operators, functions, and variables
+
+NUMBER = {[0-9]+(\.[0-9]+)?}
+IDENTIFIER = {[a-zA-Z][a-zA-Z0-9]*}
+PLUS = {\+}
+MINUS = {\-}
+MULTIPLY = {\*}
+DIVIDE = {/}
+POWER = {\^}
+LPAREN = {\(}
+RPAREN = {\)}
+COMMA = {,}
+ASSIGN = {=}
+SEMICOLON = {;}
+
+Start = <Program>
+
+-- Program can be a sequence of statements
+<Program> ::= <Statement> | <Statement> <Program>
+
+-- Statements can be assignments or expressions
+<Statement> ::= <Assignment> | <Expression> SEMICOLON
+
+-- Variable assignment
+<Assignment> ::= IDENTIFIER ASSIGN <Expression> SEMICOLON
+
+-- Expression with multiple operators and precedence
+<Expression> ::= <Term> PLUS <Expression> | <Term> MINUS <Expression> | <Term>
+<Term> ::= <Factor> MULTIPLY <Term> | <Factor> DIVIDE <Term> | <Factor>
+<Factor> ::= <Base> POWER <Factor> | <Base>
+<Base> ::= NUMBER | IDENTIFIER | <FunctionCall> | LPAREN <Expression> RPAREN
+
+-- Function calls with arguments
+<FunctionCall> ::= IDENTIFIER LPAREN <ArgumentList> RPAREN
+<ArgumentList> ::= <Expression> | <Expression> COMMA <ArgumentList> | 

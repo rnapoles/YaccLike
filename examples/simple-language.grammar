@@ -1,0 +1,88 @@
+-- Simple Programming Language Grammar
+-- Demonstrates a basic imperative language with variables, conditionals, and loops
+
+-- Keywords
+IF = {if}
+THEN = {then}
+ELSE = {else}
+WHILE = {while}
+DO = {do}
+BEGIN = {begin}
+END = {end}
+VAR = {var}
+PRINT = {print}
+
+-- Identifiers and literals
+IDENTIFIER = {[a-zA-Z][a-zA-Z0-9]*}
+NUMBER = {[0-9]+}
+STRING = {"[^"]*"}
+
+-- Operators
+ASSIGN = {:=}
+EQUALS = {=}
+LESS_THAN = {<}
+GREATER_THAN = {>}
+PLUS = {\+}
+MINUS = {\-}
+MULTIPLY = {\*}
+DIVIDE = {/}
+
+-- Punctuation
+SEMICOLON = {;}
+LPAREN = {\(}
+RPAREN = {\)}
+
+Start = <Program>
+
+-- Program structure
+<Program> ::= <DeclarationList> <StatementList>
+
+-- Variable declarations
+<DeclarationList> ::= <Declaration> <DeclarationList> | 
+<Declaration> ::= VAR IDENTIFIER SEMICOLON
+
+-- Statement list
+<StatementList> ::= <Statement> <StatementList> | <Statement>
+
+-- Different types of statements
+<Statement> ::= <Assignment>
+             | <IfStatement>
+             | <WhileStatement>
+             | <PrintStatement>
+             | <Block>
+
+-- Assignment statement
+<Assignment> ::= IDENTIFIER ASSIGN <Expression> SEMICOLON
+
+-- Conditional statement
+<IfStatement> ::= IF <Expression> THEN <Statement>
+               | IF <Expression> THEN <Statement> ELSE <Statement>
+
+-- Loop statement
+<WhileStatement> ::= WHILE <Expression> DO <Statement>
+
+-- Print statement
+<PrintStatement> ::= PRINT LPAREN <Expression> RPAREN SEMICOLON
+
+-- Block statement
+<Block> ::= BEGIN <StatementList> END
+
+-- Expressions with comparison and arithmetic
+<Expression> ::= <Comparison>
+<Comparison> ::= <ArithmeticExpr> EQUALS <ArithmeticExpr>
+              | <ArithmeticExpr> LESS_THAN <ArithmeticExpr>
+              | <ArithmeticExpr> GREATER_THAN <ArithmeticExpr>
+              | <ArithmeticExpr>
+
+<ArithmeticExpr> ::= <Term> PLUS <ArithmeticExpr>
+                  | <Term> MINUS <ArithmeticExpr>
+                  | <Term>
+
+<Term> ::= <Factor> MULTIPLY <Term>
+        | <Factor> DIVIDE <Term>
+        | <Factor>
+
+<Factor> ::= NUMBER
+          | IDENTIFIER
+          | STRING
+          | LPAREN <Expression> RPAREN

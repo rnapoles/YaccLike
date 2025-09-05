@@ -1,0 +1,45 @@
+-- JSON Grammar
+-- Parses JSON (JavaScript Object Notation) format
+-- Supports objects, arrays, strings, numbers, booleans, and null
+
+-- Literals
+STRING = {"[^"]*"}
+NUMBER = {-?[0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+)?}
+TRUE = {true}
+FALSE = {false}
+NULL = {null}
+
+-- Punctuation
+LBRACE = {\{}
+RBRACE = {\}}
+LBRACKET = {\[}
+RBRACKET = {\]}
+COMMA = {,}
+COLON = {:}
+
+Start = <Value>
+
+-- JSON value can be any of these types
+<Value> ::= <Object>
+         | <Array>
+         | STRING
+         | NUMBER
+         | TRUE
+         | FALSE
+         | NULL
+
+-- JSON object: { "key": value, "key2": value2, ... }
+<Object> ::= LBRACE RBRACE
+          | LBRACE <MemberList> RBRACE
+
+<MemberList> ::= <Member>
+              | <Member> COMMA <MemberList>
+
+<Member> ::= STRING COLON <Value>
+
+-- JSON array: [ value1, value2, ... ]
+<Array> ::= LBRACKET RBRACKET
+         | LBRACKET <ValueList> RBRACKET
+
+<ValueList> ::= <Value>
+             | <Value> COMMA <ValueList>
