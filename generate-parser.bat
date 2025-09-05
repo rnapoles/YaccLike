@@ -1,0 +1,2 @@
+@echo off
+java -cp "target/classes;target/lib/pebble-3.2.2.jar;target/lib/unbescape-1.1.6.RELEASE.jar;target/lib/slf4j-api-1.7.25.jar" com.parsergenerator.ParserGenerator -o demo/src/main/java -p com.parsergenerator.demo.expression demo/src/main/resources/expression-evaluator.grammar
