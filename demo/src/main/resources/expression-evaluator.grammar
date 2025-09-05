@@ -35,35 +35,19 @@ ABS = {abs}
 Start = <Expression>
 
 -- Expression with addition and subtraction (lowest precedence)
-<Expression> ::= <Term> PLUS <Expression>
-              | <Term> MINUS <Expression>
-              | <Term>
+<Expression> ::= <Term> PLUS <Expression> | <Term> MINUS <Expression> | <Term>
 
 -- Term with multiplication, division, and modulo
-<Term> ::= <Factor> MULTIPLY <Term>
-        | <Factor> DIVIDE <Term>
-        | <Factor> MODULO <Term>
-        | <Factor>
+<Term> ::= <Factor> MULTIPLY <Term> | <Factor> DIVIDE <Term> | <Factor> MODULO <Term> | <Factor>
 
 -- Factor with exponentiation (right associative)
-<Factor> ::= <Base> POWER <Factor>
-          | <Base>
+<Factor> ::= <Base> POWER <Factor> | <Base>
 
 -- Base expressions: numbers, variables, functions, parentheses
-<Base> ::= NUMBER
-        | IDENTIFIER
-        | PI
-        | E
-        | <Function>
-        | LPAREN <Expression> RPAREN
-        | MINUS <Base>  -- Unary minus
-
--- Function calls
-<Function> ::= <UnaryFunction> LPAREN <Expression> RPAREN
-            | <BinaryFunction> LPAREN <Expression> COMMA <Expression> RPAREN
+<Base> ::= NUMBER | IDENTIFIER | PI | E | <UnaryFunction> LPAREN <Expression> RPAREN | <BinaryFunction> LPAREN <Expression> COMMA <Expression> RPAREN | LPAREN <Expression> RPAREN | MINUS <Base>
 
 -- Functions that take one argument
-<UnaryFunction> ::= SIN | COS | TAN | LOG | LN | SQRT | ABS
+<UnaryFunction> ::= SIN | COS | TAN | LN | SQRT | ABS
 
--- Functions that take two arguments (for extensibility)
-<BinaryFunction> ::= LOG  -- log(base, value)
+-- Functions that take two arguments
+<BinaryFunction> ::= LOG
