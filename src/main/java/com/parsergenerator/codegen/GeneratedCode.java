@@ -121,6 +121,21 @@ public class GeneratedCode {
     }
     
     /**
+     * Merges another GeneratedCode instance into this one.
+     * Files from the other instance will overwrite files with the same name in this instance.
+     *
+     * @param other the GeneratedCode instance to merge
+     * @throws IllegalArgumentException if other is null
+     */
+    public void merge(GeneratedCode other) {
+        if (other == null) {
+            throw new IllegalArgumentException("Cannot merge null GeneratedCode");
+        }
+        
+        files.putAll(other.files);
+    }
+    
+    /**
      * Returns the total size of all generated code in characters.
      *
      * @return the total character count across all files

@@ -187,23 +187,27 @@ public class LexerCodeGenerator {
     /**
      * Prepares terminal information for template rendering.
      * This method validates all terminal patterns and throws an exception
-     * if any pattern is invalid.
+     * if any pattern is invalid or if no valid patterns are found.
      *
      * @param grammar the grammar containing terminals
      * @return list of terminal information objects
-     * @throws TemplateException if any terminal pattern is invalid
+     * @throws TemplateException if any terminal pattern is invalid or no valid patterns found
      */
     private List<TerminalInfo> prepareTerminalInfo(Grammar grammar) throws TemplateException {
         List<TerminalInfo> terminalInfos = new ArrayList<>();
         
         for (Terminal terminal : grammar.getTerminals()) {
-            // Always validate the pattern, even if it's empty or null
-            validateTerminalPattern(terminal);
-            
-            // Only include terminals with valid patterns in the result
+            // Only validate and include terminals that have patterns
             if (terminal.hasPattern()) {
+                validateTerminalPattern(terminal);
                 terminalInfos.add(createTerminalInfo(terminal));
             }
+        }
+        
+        // Throw exception if no terminals with valid patterns were found
+        if (terminalInfos.isEmpty()) {
+            throw new TemplateException("No terminals with valid patterns found in grammar. " +
+                    "Lexer generation requires at least one terminal with a non-empty pattern.");
         }
         
         return terminalInfos;
@@ -293,7 +297,7 @@ public class LexerCodeGenerator {
         if (terminals != null) {
             for (TerminalInfo terminal : terminals) {
                 sb.append("    private static final Pattern ").append(terminal.getConstantName())
-                  .append(" = Pattern.compile(\"").append(escapePattern(terminal.getPattern())).append("\");\n");
+                  .append(" = Pattern.compile(\"").append(escapeJavaString(terminal.getPattern())).append("\");\n");
             }
         }
         
@@ -454,8 +458,8 @@ public class LexerCodeGenerator {
         sb.append("        \n");
         sb.append("        markTokenStart();\n");
         sb.append("        \n");
-        sb.append("        // Try to match each terminal pattern in order\n");
         if (terminals != null && !terminals.isEmpty()) {
+            sb.append("        // Try to match each terminal pattern in order\n");
             sb.append("        String remainingInput = input.substring(position);\n");
             sb.append("        \n");
             for (TerminalInfo terminal : terminals) {
@@ -466,13 +470,16 @@ public class LexerCodeGenerator {
                 sb.append("            String matchedText = ").append(terminal.getName().toLowerCase())
                   .append("Matcher.group();\n");
                 sb.append("            advancePosition(matchedText.length());\n");
-                sb.append("            return new Token(TokenType.TERMINAL, matchedText, getStartPosition());\n");
+                sb.append("            return new Token(TokenType.").append(terminal.getEnumConstant()).append(", matchedText, getStartPosition());\n");
                 sb.append("        }\n");
                 sb.append("        \n");
             }
+            sb.append("        // No pattern matched - report error\n");
+        } else {
+            sb.append("        // No terminal patterns defined - this lexer cannot tokenize input\n");
+            sb.append("        // This is likely a grammar that doesn't use pattern-based terminals\n");
         }
         
-        sb.append("        // No pattern matched - report error\n");
         sb.append("        char unexpectedChar = input.charAt(position);\n");
         sb.append("        String unexpectedInput = String.valueOf(unexpectedChar);\n");
         sb.append("        String suggestion = generateSuggestion(unexpectedChar);\n");
@@ -917,5 +924,54 @@ public class LexerCodeGenerator {
             return String.format("TerminalInfo{name='%s', pattern='%s', specificity=%d}", 
                     name, pattern, specificity);
         }
+    }
+    
+    /**
+     * Escapes a string for use in Java string literals.
+     * This method properly escapes backslashes, quotes, and other special characters.
+     *
+     * @param input the string to escape
+     * @return the escaped string suitable for Java string literals
+     */
+    private String escapeJavaString(String input) {
+        if (input == null) {
+            return "";
+        }
+        
+        StringBuilder sb = new StringBuilder();
+        for (char c : input.toCharArray()) {
+            switch (c) {
+                case '\\':
+                    sb.append("\\\\");
+                    break;
+                case '"':
+                    sb.append("\\\"");
+                    break;
+                case '\n':
+                    sb.append("\\n");
+                    break;
+                case '\r':
+                    sb.append("\\r");
+                    break;
+                case '\t':
+                    sb.append("\\t");
+                    break;
+                case '\b':
+                    sb.append("\\b");
+                    break;
+                case '\f':
+                    sb.append("\\f");
+                    break;
+                default:
+                    if (c < 32 || c > 126) {
+                        // Escape non-printable characters
+                        sb.append(String.format("\\u%04x", (int) c));
+                    } else {
+                        sb.append(c);
+                    }
+                    break;
+            }
+        }
+        return sb.toString();
     }
 }

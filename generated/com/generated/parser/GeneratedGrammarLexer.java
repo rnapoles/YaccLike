@@ -1,0 +1,380 @@
+package com.generated.parser;
+
+import java.util.*;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+import com.parsergenerator.lexer.Token;
+import com.parsergenerator.lexer.TokenType;
+import com.parsergenerator.lexer.Position;
+import com.parsergenerator.lexer.LexicalException;
+
+/**
+ * Generated lexer class for GeneratedGrammar grammar.
+ * This lexer tokenizes input text according to terminal definitions.
+ * 
+ * Features:
+ * - Pattern-based tokenization using regular expressions
+ * - Position tracking (line, column, character position)
+ * - Longest-match tokenization strategy
+ * - Detailed error reporting with position information
+ */
+public class GeneratedGrammarLexer {
+    
+    // Terminal patterns
+        private static final Pattern ID_PATTERN = Pattern.compile("[a-zA-Z][a-zA-Z0-9]*");
+        private static final Pattern SEMICOLON_PATTERN = Pattern.compile(";");
+        
+    // Pattern matching order (for longest-match tokenization)
+    private static final String[] TERMINAL_ORDER = {
+                "ID",                "SEMICOLON"            };
+    
+    // Pattern map for efficient lookup
+    private static final Map<String, Pattern> PATTERN_MAP = new HashMap<>();
+    static {
+                PATTERN_MAP.put("ID", ID_PATTERN);
+                PATTERN_MAP.put("SEMICOLON", SEMICOLON_PATTERN);
+            }
+    
+    // Lexer state
+    private final String input;
+    private final String filename;
+    private int position;
+    private int line;
+    private int column;
+    private final List<Token> tokens;
+    private boolean hasErrors;
+    
+    /**
+     * Creates a new lexer for the given input.
+     *
+     * @param input the input text to tokenize
+     */
+    public GeneratedGrammarLexer(String input) {
+        this(input, null);
+    }
+    
+    /**
+     * Creates a new lexer for the given input with filename.
+     *
+     * @param input the input text to tokenize
+     * @param filename the filename for error reporting (optional)
+     */
+    public GeneratedGrammarLexer(String input, String filename) {
+        this.input = input != null ? input : "";
+        this.filename = filename;
+        this.position = 0;
+        this.line = 1;
+        this.column = 1;
+        this.tokens = new ArrayList<>();
+        this.hasErrors = false;
+    }
+    
+    /**
+     * Tokenizes the entire input and returns all tokens.
+     *
+     * @return list of all tokens found in the input
+     * @throws LexicalException if tokenization fails
+     */
+    public List<Token> tokenize() throws LexicalException {
+        tokens.clear();
+        position = 0;
+        line = 1;
+        column = 1;
+        hasErrors = false;
+        
+        while (position < input.length()) {
+            // Skip whitespace
+            if (skipWhitespace()) {
+                continue;
+            }
+            
+            // Try to match a token
+            Token token = nextToken();
+            if (token != null) {
+                tokens.add(token);
+            } else {
+                // No token matched - this is an error
+                handleLexicalError();
+            }
+        }
+        
+        // Add EOF token
+        Position eofPosition = new Position(line, column, filename);
+        tokens.add(new Token(TokenType.EOF, "", eofPosition));
+        
+        return new ArrayList<>(tokens);
+    }
+    
+    /**
+     * Gets the next token from the input.
+     *
+     * @return the next token, or null if no token can be matched
+     * @throws LexicalException if tokenization fails
+     */
+    public Token nextToken() throws LexicalException {
+        if (position >= input.length()) {
+            Position eofPosition = new Position(line, column, filename);
+            return new Token(TokenType.EOF, "", eofPosition);
+        }
+        
+        // Skip whitespace
+        if (skipWhitespace()) {
+            if (position >= input.length()) {
+                Position eofPosition = new Position(line, column, filename);
+                return new Token(TokenType.EOF, "", eofPosition);
+            }
+        }
+        
+        // Use longest-match tokenization strategy with pattern precedence
+        String bestMatch = null;
+        String bestMatchedText = null;
+        int bestMatchLength = 0;
+        
+        // Try each terminal pattern in precedence order (already sorted by specificity)
+        for (String terminalName : TERMINAL_ORDER) {
+            Pattern pattern = PATTERN_MAP.get(terminalName);
+            if (pattern != null) {
+                Matcher matcher = pattern.matcher(input);
+                matcher.region(position, input.length());
+                
+                if (matcher.lookingAt()) {
+                    String matchedText = matcher.group();
+                    int matchLength = matchedText.length();
+                    
+                    // Longest-match strategy: prefer longer matches
+                    // If same length, the first one in order wins (higher precedence)
+                    if (matchLength > bestMatchLength) {
+                        bestMatch = terminalName;
+                        bestMatchedText = matchedText;
+                        bestMatchLength = matchLength;
+                    }
+                }
+            }
+        }
+        
+        if (bestMatch != null) {
+            // Create token with current position
+            Position tokenPosition = new Position(line, column, filename);
+            
+            // Update position tracking
+            updatePosition(bestMatchedText);
+            
+            // Convert terminal name to TokenType
+            TokenType tokenType = getTokenType(bestMatch);
+            return new Token(tokenType, bestMatchedText, tokenPosition);
+        }
+        
+        return null; // No match found
+    }
+    
+    /**
+     * Checks if there are more tokens to process.
+     *
+     * @return true if more tokens are available, false otherwise
+     */
+    public boolean hasMoreTokens() {
+        return position < input.length();
+    }
+    
+    /**
+     * Gets the current position in the input.
+     *
+     * @return the current position
+     */
+    public Position getCurrentPosition() {
+        return new Position(line, column, filename);
+    }
+    
+    /**
+     * Checks if any lexical errors were encountered.
+     *
+     * @return true if errors occurred, false otherwise
+     */
+    public boolean hasErrors() {
+        return hasErrors;
+    }
+    
+    /**
+     * Finds all possible token matches at the current position.
+     * This is useful for debugging tokenization conflicts.
+     *
+     * @return list of all possible matches at the current position
+     */
+    public List<String> findAllMatchesAtCurrentPosition() {
+        List<String> matches = new ArrayList<>();
+        
+        if (position >= input.length()) {
+            return matches;
+        }
+        
+        for (String terminalName : TERMINAL_ORDER) {
+            Pattern pattern = PATTERN_MAP.get(terminalName);
+            if (pattern != null) {
+                Matcher matcher = pattern.matcher(input);
+                matcher.region(position, input.length());
+                
+                if (matcher.lookingAt()) {
+                    String matchedText = matcher.group();
+                    matches.add(terminalName + ": '" + matchedText + "' (length=" + matchedText.length() + ")");
+                }
+            }
+        }
+        
+        return matches;
+    }
+    
+    /**
+     * Skips whitespace characters and updates position tracking.
+     *
+     * @return true if whitespace was skipped, false otherwise
+     */
+    private boolean skipWhitespace() {
+        boolean skipped = false;
+        
+        while (position < input.length() && Character.isWhitespace(input.charAt(position))) {
+            char ch = input.charAt(position);
+            if (ch == '\n') {
+                line++;
+                column = 1;
+            } else if (ch == '\t') {
+                column += 4; // Assume tab width of 4
+            } else {
+                column++;
+            }
+            position++;
+            skipped = true;
+        }
+        
+        return skipped;
+    }
+    
+    /**
+     * Updates position tracking after consuming a token.
+     *
+     * @param text the text that was consumed
+     */
+    private void updatePosition(String text) {
+        for (char ch : text.toCharArray()) {
+            if (ch == '\n') {
+                line++;
+                column = 1;
+            } else if (ch == '\t') {
+                column += 4; // Assume tab width of 4
+            } else {
+                column++;
+            }
+            position++;
+        }
+    }
+    
+    /**
+     * Handles lexical errors when no token can be matched.
+     *
+     * @throws LexicalException always throws an exception
+     */
+    private void handleLexicalError() throws LexicalException {
+        hasErrors = true;
+        
+        // Find the problematic character or sequence
+        String unexpectedInput = "";
+        int errorStart = position;
+        
+        // Collect characters until we find a recognizable token or reach end
+        while (position < input.length() && unexpectedInput.length() < 10) {
+            unexpectedInput += input.charAt(position);
+            position++;
+            
+            // Try to find a valid token after this character
+            boolean foundValidToken = false;
+            for (String terminalName : TERMINAL_ORDER) {
+                Pattern pattern = PATTERN_MAP.get(terminalName);
+                if (pattern != null) {
+                    Matcher matcher = pattern.matcher(input);
+                    matcher.region(position, input.length());
+                    if (matcher.lookingAt()) {
+                        foundValidToken = true;
+                        break;
+                    }
+                }
+            }
+            
+            if (foundValidToken) {
+                break;
+            }
+        }
+        
+        Position errorPosition = new Position(line, column - unexpectedInput.length(), filename);
+        throw new LexicalException(
+            "Unexpected character sequence: '" + unexpectedInput + "'",
+            errorPosition.getLine(),
+            errorPosition.getColumn(),
+            unexpectedInput
+        );
+    }
+    
+    /**
+     * Converts a terminal name to the corresponding TokenType.
+     *
+     * @param terminalName the name of the terminal
+     * @return the corresponding TokenType
+     */
+    private TokenType getTokenType(String terminalName) {
+        try {
+            // Try to find the enum constant by name
+            for (TokenType tokenType : TokenType.values()) {
+                if (tokenType.name().equals(terminalName.toUpperCase()) ||
+                    tokenType.name().equals(toEnumConstant(terminalName))) {
+                    return tokenType;
+                }
+            }
+            
+            // If not found, try the converted name
+            String enumName = toEnumConstant(terminalName);
+            return TokenType.valueOf(enumName);
+        } catch (IllegalArgumentException e) {
+            // Fallback to a generic token type or throw an error
+            throw new RuntimeException("Unknown terminal: " + terminalName, e);
+        }
+    }
+    
+    /**
+     * Converts a terminal name to a valid Java enum constant.
+     */
+    private String toEnumConstant(String name) {
+        if (name == null || name.isEmpty()) {
+            return "UNKNOWN";
+        }
+        
+        // Handle special cases for common symbols
+        switch (name) {
+            case "+": return "PLUS";
+            case "-": return "MINUS";
+            case "*": return "MULTIPLY";
+            case "/": return "DIVIDE";
+            case "=": return "EQUALS";
+            case "(": return "LPAREN";
+            case ")": return "RPAREN";
+            case "{": return "LBRACE";
+            case "}": return "RBRACE";
+            case "[": return "LBRACKET";
+            case "]": return "RBRACKET";
+            case ";": return "SEMICOLON";
+            case ",": return "COMMA";
+            case ".": return "DOT";
+            case ":": return "COLON";
+            default:
+                String cleaned = name.replaceAll("[^a-zA-Z0-9_]", "_")
+                                    .replaceAll("_+", "_")
+                                    .replaceAll("^_|_$", "")
+                                    .toUpperCase();
+                
+                if (cleaned.isEmpty() || Character.isDigit(cleaned.charAt(0))) {
+                    cleaned = "TOKEN_" + cleaned;
+                }
+                
+                return cleaned.isEmpty() ? "UNKNOWN" : cleaned;
+        }
+    }
+}
+</content>
+</invoke>
