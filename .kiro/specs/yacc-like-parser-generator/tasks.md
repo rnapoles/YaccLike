@@ -227,9 +227,7 @@
 
 - [-] 12. Test with arithmetic grammar example
 
-
-- [-] 12.1 Implement arithmetic grammar test case
-
+- [x] 12.1 Implement arithmetic grammar test case
 
   - Create test case using the provided arithmetic grammar
   - Verify correct parsing of expressions with proper precedence
@@ -239,7 +237,10 @@
   - Create the required commits by running the `git commit` command
   - _Requirements: 6.1, 6.2, 6.3, 6.4_
 
-- [ ] 12.2 Validate generated parser functionality
+- [-] 12.2 Validate generated parser functionality
+
+
+
   - Test generated parser with various arithmetic expressions
   - Verify error handling for invalid arithmetic input
   - Ensure AST generation reflects correct operator precedence
