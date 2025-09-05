@@ -2,10 +2,6 @@
 
 - [x] 1. Add multi-line detection infrastructure to GrammarLexer
 
-
-
-
-
   - The characters \n,\t,\r,\s must be skiped
   - Maintaint the position tracking
   - Write unit tests for the basic detection logic
