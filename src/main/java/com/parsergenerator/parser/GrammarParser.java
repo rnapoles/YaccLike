@@ -176,6 +176,12 @@ public class GrammarParser {
             parseTerminalDefinition();
         } else if (current.isType(TokenType.NON_TERMINAL)) {
             parseProductionRule();
+        } else if (current.isType(TokenType.PIPE)) {
+            // This is likely a continuation line from a multi-line production
+            // This should not happen if parseProductionRule handles multi-line correctly
+            // But we'll provide a helpful error message
+            reportSyntaxError("Unexpected continuation line - '|' must follow a production rule", 
+                            null, current, "grammar statement");
         } else if (current.isType(TokenType.EOF)) {
             // End of input - this is normal
             return;
@@ -295,6 +301,7 @@ public class GrammarParser {
     
     /**
      * Parses a production rule: <NonTerminal> ::= <Rule1> | <Rule2> | ...
+     * Supports both single-line and multi-line production formats.
      */
     private void parseProductionRule() throws ParseException {
         Token nonTerminalToken = consume(TokenType.NON_TERMINAL, "Expected non-terminal");
@@ -320,7 +327,16 @@ public class GrammarParser {
         grammar.addProduction(production);
         
         // Parse additional alternatives separated by '|'
-        while (peek().isType(TokenType.PIPE)) {
+        // This now supports multi-line productions by skipping newlines and comments
+        while (true) {
+            // Skip any newlines and comments between alternatives
+            skipCommentsAndNewlines();
+            
+            // Check if we have a pipe for the next alternative
+            if (!peek().isType(TokenType.PIPE)) {
+                break; // No more alternatives
+            }
+            
             advance(); // consume '|'
             
             try {
