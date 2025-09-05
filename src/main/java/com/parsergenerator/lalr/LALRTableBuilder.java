@@ -122,13 +122,14 @@ public class LALRTableBuilder {
 
             int newErrors = errorReporter.getErrorCount() - initialErrorCount;
             if (newErrors > 0) {
-                errorReporter.reportError(ErrorReporter.Severity.ERROR,
-                        ErrorReporter.ErrorType.LALR_CONFLICT,
-                        String.format("LALR table construction failed with %d conflicts", conflicts),
+                errorReporter.reportWarning(ErrorReporter.ErrorType.LALR_CONFLICT,
+                        String.format("LALR table construction completed with %d conflicts", conflicts),
                         null,
-                        "Grammar is not LALR(1) compatible",
-                        "Modify grammar to eliminate conflicts or use a more powerful parsing technique");
-                throw new IllegalStateException("Grammar has LALR conflicts - cannot generate parser");
+                        "Grammar is not LALR(1) compatible - conflicts may affect parsing accuracy");
+                errorReporter.reportInfo(ErrorReporter.ErrorType.LALR_CONFLICT,
+                        String.format(
+                                "LALR table construction completed with conflicts - %d states, %d ACTION entries, %d GOTO entries",
+                                table.getStateCount(), table.getActionEntryCount(), table.getGotoEntryCount()));
             } else {
                 errorReporter.reportInfo(ErrorReporter.ErrorType.LALR_CONFLICT,
                         String.format(
