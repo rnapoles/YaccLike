@@ -1,13 +1,13 @@
 # Implementation Plan
 
-- [-] 1. Add multi-line detection infrastructure to GrammarLexer
-
+- [x] 1. Add multi-line detection infrastructure to GrammarLexer
 
 
 
   - The characters \n,\t,\r,\s must be skiped
   - Maintaint the position tracking
   - Write unit tests for the basic detection logic
+  - Write a test that use calculator.grammar to test the lexer
   - Run the Maven tests to verify that the current implementation doesn't break anything.
   - When every thing is ok, save the changes using `git` command.
   - _Requirements: 1.1, 1.2, 1.3_
@@ -35,7 +35,6 @@
   - Add state management for tracking when lexer is processing multi-line productions
   - Ensure backward compatibility by maintaining existing behavior for single-line grammars
   - Write unit tests comparing token sequences between single-line and multi-line equivalent grammars
-  - Write a test that use calculator.grammar to test the lexer
   - Run the Maven tests to verify that the current implementation doesn't break anything.
   - When every thing is ok, save the changes using `git` command.
   - _Requirements: 1.5, 2.1, 2.2, 4.1_
