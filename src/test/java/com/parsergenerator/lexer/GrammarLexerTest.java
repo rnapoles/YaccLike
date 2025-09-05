@@ -511,4 +511,300 @@ class GrammarLexerTest {
             fail("Failed to test multi-line infrastructure initialization: " + e.getMessage());
         }
     }
+    
+    // Line continuation detection tests
+    
+    @Test
+    void testDetectContinuationPatternWithTrailingPipe() {
+        GrammarLexer lexer = new GrammarLexer("<expr> ::= <term> |\n  <factor>");
+        
+        // Advance to the second line
+        lexer.nextToken(); // <expr>
+        lexer.nextToken(); // ::=
+        lexer.nextToken(); // <term>
+        lexer.nextToken(); // |
+        lexer.nextToken(); // newline
+        
+        try {
+            java.lang.reflect.Method method = GrammarLexer.class.getDeclaredMethod("detectContinuationPattern");
+            method.setAccessible(true);
+            
+            boolean result = (Boolean) method.invoke(lexer);
+            assertTrue(result, "Should detect continuation pattern with trailing pipe on previous line");
+        } catch (Exception e) {
+            fail("Failed to test detectContinuationPattern method: " + e.getMessage());
+        }
+    }
+    
+    @Test
+    void testDetectContinuationPatternWithLeadingPipe() {
+        GrammarLexer lexer = new GrammarLexer("  | <factor>");
+        
+        try {
+            java.lang.reflect.Method method = GrammarLexer.class.getDeclaredMethod("detectContinuationPattern");
+            method.setAccessible(true);
+            
+            boolean result = (Boolean) method.invoke(lexer);
+            assertTrue(result, "Should detect continuation pattern with leading pipe");
+        } catch (Exception e) {
+            fail("Failed to test detectContinuationPattern method: " + e.getMessage());
+        }
+    }
+    
+    @Test
+    void testDetectContinuationPatternWithIncompleteProduction() {
+        GrammarLexer lexer = new GrammarLexer("<expr> ::=\n  <term>");
+        
+        // Advance to the second line
+        lexer.nextToken(); // <expr>
+        lexer.nextToken(); // ::=
+        lexer.nextToken(); // newline
+        
+        try {
+            java.lang.reflect.Method method = GrammarLexer.class.getDeclaredMethod("detectContinuationPattern");
+            method.setAccessible(true);
+            
+            boolean result = (Boolean) method.invoke(lexer);
+            assertTrue(result, "Should detect continuation pattern with incomplete production");
+        } catch (Exception e) {
+            fail("Failed to test detectContinuationPattern method: " + e.getMessage());
+        }
+    }
+    
+    @Test
+    void testDetectContinuationPatternNoContinuation() {
+        GrammarLexer lexer = new GrammarLexer("<expr> ::= <term>\n<stmt> ::= ID");
+        
+        // Advance to the second line
+        lexer.nextToken(); // <expr>
+        lexer.nextToken(); // ::=
+        lexer.nextToken(); // <term>
+        lexer.nextToken(); // newline
+        
+        try {
+            java.lang.reflect.Method method = GrammarLexer.class.getDeclaredMethod("detectContinuationPattern");
+            method.setAccessible(true);
+            
+            boolean result = (Boolean) method.invoke(lexer);
+            assertFalse(result, "Should not detect continuation pattern for complete production");
+        } catch (Exception e) {
+            fail("Failed to test detectContinuationPattern method: " + e.getMessage());
+        }
+    }
+    
+    @Test
+    void testDetectContinuationPatternAtEndOfInput() {
+        GrammarLexer lexer = new GrammarLexer("");
+        
+        try {
+            java.lang.reflect.Method method = GrammarLexer.class.getDeclaredMethod("detectContinuationPattern");
+            method.setAccessible(true);
+            
+            boolean result = (Boolean) method.invoke(lexer);
+            assertFalse(result, "Should not detect continuation pattern at end of input");
+        } catch (Exception e) {
+            fail("Failed to test detectContinuationPattern method: " + e.getMessage());
+        }
+    }
+    
+    @Test
+    void testDetectContinuationPatternWithWhitespaceVariations() {
+        // Test with various whitespace patterns
+        String[] testCases = {
+            "<expr> ::= <term>   |\n    <factor>",  // trailing spaces before pipe
+            "<expr> ::= <term>|\n\t<factor>",       // no space before pipe, tab on next line
+            "<expr> ::= <term> |   \n  <factor>",   // spaces after pipe
+            "<expr> ::=\t\n\t\t<factor>"            // tabs everywhere
+        };
+        
+        for (String testCase : testCases) {
+            GrammarLexer lexer = new GrammarLexer(testCase);
+            
+            // Advance to the second line
+            while (lexer.nextToken().getType() != TokenType.NEWLINE) {
+                // Skip to newline
+            }
+            
+            try {
+                java.lang.reflect.Method method = GrammarLexer.class.getDeclaredMethod("detectContinuationPattern");
+                method.setAccessible(true);
+                
+                boolean result = (Boolean) method.invoke(lexer);
+                assertTrue(result, "Should detect continuation pattern with whitespace variations: " + testCase);
+            } catch (Exception e) {
+                fail("Failed to test detectContinuationPattern with whitespace variations: " + e.getMessage());
+            }
+        }
+    }
+    
+    @Test
+    void testIsIncompleteProductionWithProductionArrow() {
+        GrammarLexer lexer = new GrammarLexer("dummy");
+        
+        try {
+            java.lang.reflect.Method method = GrammarLexer.class.getDeclaredMethod("isIncompleteProduction", String.class);
+            method.setAccessible(true);
+            
+            // Test cases that should be considered incomplete
+            assertTrue((Boolean) method.invoke(lexer, "<expr> ::="), "Should detect incomplete production ending with ::=");
+            assertTrue((Boolean) method.invoke(lexer, "<expr> ::= <term> |"), "Should detect incomplete production ending with |");
+            assertTrue((Boolean) method.invoke(lexer, "<expr> ::=   "), "Should detect incomplete production with empty right side");
+            
+            // Test cases that should NOT be considered incomplete
+            assertFalse((Boolean) method.invoke(lexer, "<expr> ::= <term>"), "Should not detect complete production as incomplete");
+            assertFalse((Boolean) method.invoke(lexer, "ID = {test}"), "Should not detect terminal definition as incomplete");
+            assertFalse((Boolean) method.invoke(lexer, ""), "Should not detect empty line as incomplete");
+            assertFalse((Boolean) method.invoke(lexer, "-- comment"), "Should not detect comment as incomplete");
+            
+        } catch (Exception e) {
+            fail("Failed to test isIncompleteProduction method: " + e.getMessage());
+        }
+    }
+    
+    @Test
+    void testSkipLeadingWhitespaceOnContinuationLine() {
+        GrammarLexer lexer = new GrammarLexer("   \t  | <factor>");
+        
+        try {
+            java.lang.reflect.Method method = GrammarLexer.class.getDeclaredMethod("skipLeadingWhitespaceOnContinuationLine");
+            method.setAccessible(true);
+            
+            // Before skipping, we should be at the first space
+            assertEquals(' ', lexer.peek());
+            
+            // Skip leading whitespace
+            method.invoke(lexer);
+            
+            // After skipping, we should be at the pipe character
+            assertEquals('|', lexer.peek());
+            
+        } catch (Exception e) {
+            fail("Failed to test skipLeadingWhitespaceOnContinuationLine method: " + e.getMessage());
+        }
+    }
+    
+    @Test
+    void testSkipLeadingWhitespaceOnContinuationLineWithNewline() {
+        GrammarLexer lexer = new GrammarLexer("   \n<factor>");
+        
+        try {
+            java.lang.reflect.Method method = GrammarLexer.class.getDeclaredMethod("skipLeadingWhitespaceOnContinuationLine");
+            method.setAccessible(true);
+            
+            // Skip leading whitespace
+            method.invoke(lexer);
+            
+            // Should stop at newline, not skip it
+            assertEquals('\n', lexer.peek());
+            
+        } catch (Exception e) {
+            fail("Failed to test skipLeadingWhitespaceOnContinuationLine with newline: " + e.getMessage());
+        }
+    }
+    
+    @Test
+    void testSkipLeadingWhitespaceOnContinuationLineAtEndOfInput() {
+        GrammarLexer lexer = new GrammarLexer("   ");
+        
+        try {
+            java.lang.reflect.Method method = GrammarLexer.class.getDeclaredMethod("skipLeadingWhitespaceOnContinuationLine");
+            method.setAccessible(true);
+            
+            // Skip leading whitespace
+            method.invoke(lexer);
+            
+            // Should be at end of input
+            assertTrue(lexer.isAtEnd());
+            
+        } catch (Exception e) {
+            fail("Failed to test skipLeadingWhitespaceOnContinuationLine at end of input: " + e.getMessage());
+        }
+    }
+    
+    @Test
+    void testSkipLeadingWhitespaceOnContinuationLineWithMixedWhitespace() {
+        GrammarLexer lexer = new GrammarLexer(" \t \t  <factor>");
+        
+        try {
+            java.lang.reflect.Method method = GrammarLexer.class.getDeclaredMethod("skipLeadingWhitespaceOnContinuationLine");
+            method.setAccessible(true);
+            
+            // Skip leading whitespace
+            method.invoke(lexer);
+            
+            // Should be at the '<' character
+            assertEquals('<', lexer.peek());
+            
+        } catch (Exception e) {
+            fail("Failed to test skipLeadingWhitespaceOnContinuationLine with mixed whitespace: " + e.getMessage());
+        }
+    }
+    
+    @Test
+    void testContinuationPatternDetectionPositionRestoration() {
+        GrammarLexer lexer = new GrammarLexer("<expr> ::= <term> |\n  <factor>");
+        
+        // Advance to the second line
+        lexer.nextToken(); // <expr>
+        lexer.nextToken(); // ::=
+        lexer.nextToken(); // <term>
+        lexer.nextToken(); // |
+        lexer.nextToken(); // newline
+        
+        // Get position before calling detectContinuationPattern
+        Position beforePos = lexer.getCurrentPosition();
+        
+        try {
+            java.lang.reflect.Method method = GrammarLexer.class.getDeclaredMethod("detectContinuationPattern");
+            method.setAccessible(true);
+            
+            boolean result = (Boolean) method.invoke(lexer);
+            assertTrue(result, "Should detect continuation pattern");
+            
+            // Position should be restored after the call
+            Position afterPos = lexer.getCurrentPosition();
+            assertEquals(beforePos.getLine(), afterPos.getLine(), "Line should be restored");
+            assertEquals(beforePos.getColumn(), afterPos.getColumn(), "Column should be restored");
+            
+        } catch (Exception e) {
+            fail("Failed to test position restoration in detectContinuationPattern: " + e.getMessage());
+        }
+    }
+    
+    @Test
+    void testContinuationPatternWithComplexMultiLineGrammar() {
+        String grammar = "<expr> ::= <expr> PLUS <term>\n" +
+                        "         | <expr> MINUS <term>\n" +
+                        "         | <term>\n" +
+                        "\n" +
+                        "<term> ::= <factor> MULTIPLY <term> |\n" +
+                        "           <factor>";
+        
+        GrammarLexer lexer = new GrammarLexer(grammar);
+        
+        try {
+            java.lang.reflect.Method method = GrammarLexer.class.getDeclaredMethod("detectContinuationPattern");
+            method.setAccessible(true);
+            
+            // Test at various positions in the multi-line grammar
+            // Skip to first continuation line
+            while (lexer.nextToken().getType() != TokenType.NEWLINE) {
+                // Skip to first newline
+            }
+            
+            boolean result1 = (Boolean) method.invoke(lexer);
+            assertTrue(result1, "Should detect continuation on second line of first production");
+            
+            // Continue to next line
+            while (lexer.nextToken().getType() != TokenType.NEWLINE) {
+                // Skip to next newline
+            }
+            
+            boolean result2 = (Boolean) method.invoke(lexer);
+            assertTrue(result2, "Should detect continuation on third line of first production");
+            
+        } catch (Exception e) {
+            fail("Failed to test continuation pattern with complex multi-line grammar: " + e.getMessage());
+        }
+    }
 }

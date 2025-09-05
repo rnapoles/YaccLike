@@ -313,7 +313,12 @@ public class GrammarLexer {
         return Character.isLetterOrDigit(c) || c == '_';
     }
     
-    private char peek() {
+    /**
+     * Returns the current character without advancing the position.
+     * 
+     * @return the current character, or '\0' if at end of input
+     */
+    public char peek() {
         if (isAtEnd()) return '\0';
         return input.charAt(position);
     }
@@ -336,11 +341,21 @@ public class GrammarLexer {
         return c;
     }
     
-    private boolean isAtEnd() {
+    /**
+     * Returns whether the lexer has reached the end of input.
+     * 
+     * @return true if at end of input
+     */
+    public boolean isAtEnd() {
         return position >= input.length();
     }
     
-    private Position getCurrentPosition() {
+    /**
+     * Returns the current position in the input stream.
+     * 
+     * @return the current position
+     */
+    public Position getCurrentPosition() {
         return new Position(line, column, filename);
     }
     
@@ -458,5 +473,121 @@ public class GrammarLexer {
         }
         
         return false;
+    }
+    
+    /**
+     * Detects if the current line or previous line contains patterns that indicate
+     * a multi-line production rule continuation. This method identifies:
+     * 1. Lines ending with a pipe (|) character (trailing pipe pattern)
+     * 2. Lines that appear to have incomplete production syntax
+     * 3. Current line starting with a pipe character (leading pipe pattern)
+     * 
+     * @return true if a continuation pattern is detected
+     */
+    private boolean detectContinuationPattern() {
+        if (isAtEnd()) {
+            return false;
+        }
+        
+        // Save current position to restore later
+        int savedPosition = position;
+        int savedLine = line;
+        int savedColumn = column;
+        
+        try {
+            // First check if current line starts with a pipe (after optional whitespace)
+            if (isProductionContinuation()) {
+                return true;
+            }
+            
+            // Check for trailing pipe pattern on previous line
+            // We need to look backwards to find the previous line
+            if (position > 0) {
+                // Find the start of current line
+                int currentLineStart = position;
+                while (currentLineStart > 0 && input.charAt(currentLineStart - 1) != '\n') {
+                    currentLineStart--;
+                }
+                
+                // If we're not at the first line, check the previous line
+                if (currentLineStart > 0) {
+                    // Find the start of previous line
+                    int prevLineStart = currentLineStart - 1; // Skip the newline
+                    while (prevLineStart > 0 && input.charAt(prevLineStart - 1) != '\n') {
+                        prevLineStart--;
+                    }
+                    
+                    // Extract the previous line content
+                    String prevLine = input.substring(prevLineStart, currentLineStart - 1);
+                    
+                    // Check if previous line ends with pipe (after trimming whitespace)
+                    String trimmedPrevLine = prevLine.trim();
+                    if (trimmedPrevLine.endsWith("|")) {
+                        return true;
+                    }
+                    
+                    // Check for incomplete production patterns
+                    if (isIncompleteProduction(trimmedPrevLine)) {
+                        return true;
+                    }
+                }
+            }
+            
+            return false;
+        } finally {
+            // Restore position
+            position = savedPosition;
+            line = savedLine;
+            column = savedColumn;
+        }
+    }
+    
+    /**
+     * Checks if a line contains an incomplete production rule that suggests
+     * continuation on the next line. This includes:
+     * 1. Lines ending with production arrow (::=) but no alternatives
+     * 2. Lines with production arrow but incomplete right-hand side
+     * 3. Lines ending with operators that suggest more content follows
+     * 
+     * @param line the line content to check (trimmed)
+     * @return true if the line appears to be an incomplete production
+     */
+    private boolean isIncompleteProduction(String line) {
+        if (line.isEmpty()) {
+            return false;
+        }
+        
+        // Check if line ends with production arrow (suggests alternatives follow)
+        if (line.endsWith("::=")) {
+            return true;
+        }
+        
+        // Check if line contains production arrow but seems incomplete
+        if (line.contains("::=")) {
+            String rightSide = line.substring(line.indexOf("::=") + 3).trim();
+            // If right side is empty or ends with certain operators, it might be incomplete
+            if (rightSide.isEmpty() || rightSide.endsWith("|")) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Skips leading whitespace on a continuation line while preserving
+     * the lexer's position tracking. This method is specifically designed
+     * for handling whitespace normalization when processing multi-line
+     * production rules.
+     * 
+     * This method skips spaces and tabs but stops at:
+     * - Newline characters (\n)
+     * - End of input
+     * - Non-whitespace characters
+     */
+    private void skipLeadingWhitespaceOnContinuationLine() {
+        while (!isAtEnd() && isWhitespace(peek()) && peek() != '\n') {
+            advance();
+        }
     }
 }

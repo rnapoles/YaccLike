@@ -1,7 +1,6 @@
 # Implementation Plan
 
-- [-] 1. Add multi-line detection infrastructure to GrammarLexer
-
+- [x] 1. Add multi-line detection infrastructure to GrammarLexer
 
   - Add private fields for tracking multi-line state (tokenBuffer, inMultiLineProduction, multiLineStartLine)
   - Create helper method `isProductionContinuation()` to detect when a line continues a production rule
@@ -11,7 +10,10 @@
   - When every thing is ok, save the changes using `git` command.
   - _Requirements: 1.1, 1.2, 1.3_
 
-- [ ] 2. Implement line continuation detection logic
+- [-] 2. Implement line continuation detection logic
+
+
+
   - Create method `detectContinuationPattern()` that identifies trailing pipe patterns and incomplete productions
   - Add logic to handle whitespace normalization on continuation lines
   - Create method `skipLeadingWhitespaceOnContinuationLine()` for proper whitespace handling
@@ -34,6 +36,7 @@
   - Add state management for tracking when lexer is processing multi-line productions
   - Ensure backward compatibility by maintaining existing behavior for single-line grammars
   - Write unit tests comparing token sequences between single-line and multi-line equivalent grammars
+  - Write a test that use calculator.grammar to test the lexer
   - Run the Maven tests to verify that the current implementation doesn't break anything.
   - When every thing is ok, save the changes using `git` command.
   - _Requirements: 1.5, 2.1, 2.2, 4.1_
