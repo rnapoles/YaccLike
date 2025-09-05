@@ -21,6 +21,7 @@ public class LALRTableBuilder {
     private final Grammar grammar;
     private final AnalysisResult analysisResult;
     private final ErrorReporter errorReporter;
+    private final boolean throwOnConflicts;
     private final List<LRItemSet> lr0States;
     private final Map<LRItemSet, Integer> stateMap;
     private final Map<Integer, Map<Symbol, Integer>> transitions;
@@ -36,7 +37,7 @@ public class LALRTableBuilder {
      * @throws IllegalArgumentException if grammar or analysisResult is null
      */
     public LALRTableBuilder(Grammar grammar, AnalysisResult analysisResult) {
-        this(grammar, analysisResult, new ErrorReporter());
+        this(grammar, analysisResult, new ErrorReporter(), true);
     }
 
     /**
@@ -48,6 +49,19 @@ public class LALRTableBuilder {
      * @throws IllegalArgumentException if grammar or analysisResult is null
      */
     public LALRTableBuilder(Grammar grammar, AnalysisResult analysisResult, ErrorReporter errorReporter) {
+        this(grammar, analysisResult, errorReporter, true);
+    }
+
+    /**
+     * Constructs a new LALRTableBuilder with the specified error reporter and conflict handling behavior.
+     *
+     * @param grammar        the grammar to build tables for
+     * @param analysisResult the result of grammar analysis
+     * @param errorReporter  the error reporter to use
+     * @param throwOnConflicts whether to throw exceptions when conflicts are detected
+     * @throws IllegalArgumentException if grammar or analysisResult is null
+     */
+    public LALRTableBuilder(Grammar grammar, AnalysisResult analysisResult, ErrorReporter errorReporter, boolean throwOnConflicts) {
         if (grammar == null) {
             throw new IllegalArgumentException("Grammar cannot be null");
         }
@@ -61,6 +75,7 @@ public class LALRTableBuilder {
         this.grammar = grammar;
         this.analysisResult = analysisResult;
         this.errorReporter = errorReporter != null ? errorReporter : new ErrorReporter();
+        this.throwOnConflicts = throwOnConflicts;
         this.lr0States = new ArrayList<>();
         this.stateMap = new HashMap<>();
         this.transitions = new HashMap<>();
@@ -122,14 +137,24 @@ public class LALRTableBuilder {
 
             int newErrors = errorReporter.getErrorCount() - initialErrorCount;
             if (newErrors > 0) {
-                errorReporter.reportWarning(ErrorReporter.ErrorType.LALR_CONFLICT,
-                        String.format("LALR table construction completed with %d conflicts", conflicts),
-                        null,
-                        "Grammar is not LALR(1) compatible - conflicts may affect parsing accuracy");
-                errorReporter.reportInfo(ErrorReporter.ErrorType.LALR_CONFLICT,
-                        String.format(
-                                "LALR table construction completed with conflicts - %d states, %d ACTION entries, %d GOTO entries",
-                                table.getStateCount(), table.getActionEntryCount(), table.getGotoEntryCount()));
+                if (throwOnConflicts) {
+                    errorReporter.reportError(ErrorReporter.Severity.ERROR,
+                            ErrorReporter.ErrorType.LALR_CONFLICT,
+                            String.format("LALR table construction failed with %d conflicts", conflicts),
+                            null,
+                            "Grammar is not LALR(1) compatible",
+                            "Modify grammar to eliminate conflicts or use a more powerful parsing technique");
+                    throw new IllegalStateException("Grammar has LALR conflicts - cannot generate parser");
+                } else {
+                    errorReporter.reportWarning(ErrorReporter.ErrorType.LALR_CONFLICT,
+                            String.format("LALR table construction completed with %d conflicts", conflicts),
+                            null,
+                            "Grammar is not LALR(1) compatible - conflicts may affect parsing accuracy");
+                    errorReporter.reportInfo(ErrorReporter.ErrorType.LALR_CONFLICT,
+                            String.format(
+                                    "LALR table construction completed with conflicts - %d states, %d ACTION entries, %d GOTO entries",
+                                    table.getStateCount(), table.getActionEntryCount(), table.getGotoEntryCount()));
+                }
             } else {
                 errorReporter.reportInfo(ErrorReporter.ErrorType.LALR_CONFLICT,
                         String.format(

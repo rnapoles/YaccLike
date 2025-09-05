@@ -1,6 +1,7 @@
 package com.parsergenerator.lalr;
 
 import com.parsergenerator.analysis.AnalysisResult;
+import com.parsergenerator.error.ErrorReporter;
 import com.parsergenerator.grammar.Grammar;
 import com.parsergenerator.grammar.Production;
 import com.parsergenerator.symbol.NonTerminal;
@@ -63,7 +64,7 @@ class LALRTableBuilderActionGotoTest {
         grammar.setStartSymbol(S);
         grammar.addProduction(new Production(S, a, b));
         
-        LALRTableBuilder builder = new LALRTableBuilder(grammar, successfulAnalysis);
+        LALRTableBuilder builder = new LALRTableBuilder(grammar, successfulAnalysis, new ErrorReporter(), false);
         ParsingTable table = builder.buildTable();
         
         // Verify ACTION table has shift actions
@@ -87,7 +88,7 @@ class LALRTableBuilderActionGotoTest {
         grammar.addProduction(prod1);
         grammar.addProduction(prod2);
         
-        LALRTableBuilder builder = new LALRTableBuilder(grammar, successfulAnalysis);
+        LALRTableBuilder builder = new LALRTableBuilder(grammar, successfulAnalysis, new ErrorReporter(), false);
         ParsingTable table = builder.buildTable();
         
         // Verify ACTION table has reduce actions
@@ -109,7 +110,7 @@ class LALRTableBuilderActionGotoTest {
         grammar.setStartSymbol(S);
         grammar.addProduction(new Production(S, a));
         
-        LALRTableBuilder builder = new LALRTableBuilder(grammar, successfulAnalysis);
+        LALRTableBuilder builder = new LALRTableBuilder(grammar, successfulAnalysis, new ErrorReporter(), false);
         ParsingTable table = builder.buildTable();
         
         // Verify ACTION table has exactly one accept action
@@ -124,7 +125,7 @@ class LALRTableBuilderActionGotoTest {
         // Create expression grammar: E -> E + T | T, T -> T * F | F, F -> ( E ) | id
         grammar = createExpressionGrammar();
         
-        LALRTableBuilder builder = new LALRTableBuilder(grammar, successfulAnalysis);
+        LALRTableBuilder builder = new LALRTableBuilder(grammar, successfulAnalysis, new ErrorReporter(), false);
         ParsingTable table = builder.buildTable();
         
         // Verify ACTION table structure
@@ -244,7 +245,7 @@ class LALRTableBuilderActionGotoTest {
         grammar.addProduction(new Production(A, a));
         grammar.addProduction(new Production(B, a));
         
-        LALRTableBuilder builder = new LALRTableBuilder(grammar, successfulAnalysis);
+        LALRTableBuilder builder = new LALRTableBuilder(grammar, successfulAnalysis, new ErrorReporter(), false);
         ParsingTable table = builder.buildTable();
         
         // Check conflict detection
@@ -265,7 +266,7 @@ class LALRTableBuilderActionGotoTest {
         grammar.addProduction(new Production(E, E, plus, E));
         grammar.addProduction(new Production(E, id));
         
-        LALRTableBuilder builder = new LALRTableBuilder(grammar, successfulAnalysis);
+        LALRTableBuilder builder = new LALRTableBuilder(grammar, successfulAnalysis, new ErrorReporter(), false);
         ParsingTable table = builder.buildTable();
         
         // Table should be constructed with conflict resolution applied
