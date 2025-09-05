@@ -86,8 +86,9 @@ public class TemplateManagerTest {
     void testGetTemplateNames() {
         Set<String> names = templateManager.getTemplateNames();
         assertNotNull(names);
-        assertEquals(10, names.size()); // Exactly 10 predefined templates
+        assertEquals(13, names.size()); // 10 parser templates + 3 lexer templates
         
+        // Parser templates
         assertTrue(names.contains(TemplateManager.PARSER_CLASS_TEMPLATE));
         assertTrue(names.contains(TemplateManager.TOKEN_CLASS_TEMPLATE));
         assertTrue(names.contains(TemplateManager.TOKEN_TYPE_ENUM_TEMPLATE));
@@ -98,11 +99,16 @@ public class TemplateManagerTest {
         assertTrue(names.contains(TemplateManager.PARSE_EXCEPTION_TEMPLATE));
         assertTrue(names.contains(TemplateManager.PARSING_TABLE_TEMPLATE));
         assertTrue(names.contains(TemplateManager.POSITION_CLASS_TEMPLATE));
+        
+        // Lexer templates
+        assertTrue(names.contains(TemplateManager.LEXER_CLASS_TEMPLATE));
+        assertTrue(names.contains(TemplateManager.TOKENIZER_ENGINE_TEMPLATE));
+        assertTrue(names.contains(TemplateManager.LEXICAL_EXCEPTION_TEMPLATE));
     }
     
     @Test
     void testGetTemplateCount() {
-        assertEquals(10, templateManager.getTemplateCount());
+        assertEquals(13, templateManager.getTemplateCount()); // 10 parser templates + 3 lexer templates
     }
     
     @Test

@@ -30,6 +30,11 @@ public class TemplateManager {
     public static final String PARSING_TABLE_TEMPLATE = "parsing_table";
     public static final String POSITION_CLASS_TEMPLATE = "position_class";
     
+    // Lexer template names
+    public static final String LEXER_CLASS_TEMPLATE = "lexer_class";
+    public static final String TOKENIZER_ENGINE_TEMPLATE = "tokenizer_engine";
+    public static final String LEXICAL_EXCEPTION_TEMPLATE = "lexical_exception";
+    
     /**
      * Creates a new TemplateManager with Pebble engine configured for classpath templates.
      */
@@ -137,6 +142,11 @@ public class TemplateManager {
         templatePaths.put(PARSE_EXCEPTION_TEMPLATE, "parse_exception.peb");
         templatePaths.put(PARSING_TABLE_TEMPLATE, "parsing_table.peb");
         templatePaths.put(POSITION_CLASS_TEMPLATE, "position_class.peb");
+        
+        // Lexer templates
+        templatePaths.put(LEXER_CLASS_TEMPLATE, "lexer_class.peb");
+        templatePaths.put(TOKENIZER_ENGINE_TEMPLATE, "tokenizer_engine.peb");
+        templatePaths.put(LEXICAL_EXCEPTION_TEMPLATE, "lexical_exception.peb");
     }
     
     /**
