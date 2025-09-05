@@ -25,6 +25,7 @@ public class TemplateManager {
     public static final String AST_NODE_BASE_TEMPLATE = "ast_node_base";
     public static final String AST_NODE_TERMINAL_TEMPLATE = "ast_node_terminal";
     public static final String AST_NODE_NONTERMINAL_TEMPLATE = "ast_node_nonterminal";
+    public static final String AST_VISITOR_TEMPLATE = "ast_visitor";
     public static final String PARSE_EXCEPTION_TEMPLATE = "parse_exception";
     public static final String PARSING_TABLE_TEMPLATE = "parsing_table";
     
@@ -131,6 +132,7 @@ public class TemplateManager {
         templatePaths.put(AST_NODE_BASE_TEMPLATE, "ast_node_base.peb");
         templatePaths.put(AST_NODE_TERMINAL_TEMPLATE, "ast_node_terminal.peb");
         templatePaths.put(AST_NODE_NONTERMINAL_TEMPLATE, "ast_node_nonterminal.peb");
+        templatePaths.put(AST_VISITOR_TEMPLATE, "ast_visitor.peb");
         templatePaths.put(PARSE_EXCEPTION_TEMPLATE, "parse_exception.peb");
         templatePaths.put(PARSING_TABLE_TEMPLATE, "parsing_table.peb");
     }

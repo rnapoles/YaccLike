@@ -1,0 +1,20 @@
+package {{ packageName }};
+
+/**
+ * Visitor interface for traversing AST nodes in the {{ grammarName }} grammar.
+ */
+public interface ASTVisitor<T> {
+    
+    /**
+     * Visits a terminal node.
+     */
+    T visitTerminal(TerminalNode node);
+    
+    {% for nonTerminal in nonTerminals %}
+    /**
+     * Visits a {{ nonTerminal }} node.
+     */
+    T visit{{ nonTerminal }}({{ nonTerminal }}Node node);
+    
+    {% endfor %}
+}

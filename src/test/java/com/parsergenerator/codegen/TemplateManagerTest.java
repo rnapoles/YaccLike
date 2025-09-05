@@ -86,7 +86,7 @@ public class TemplateManagerTest {
     void testGetTemplateNames() {
         Set<String> names = templateManager.getTemplateNames();
         assertNotNull(names);
-        assertEquals(8, names.size()); // Exactly 8 predefined templates
+        assertEquals(9, names.size()); // Exactly 9 predefined templates
         
         assertTrue(names.contains(TemplateManager.PARSER_CLASS_TEMPLATE));
         assertTrue(names.contains(TemplateManager.TOKEN_CLASS_TEMPLATE));
@@ -94,13 +94,14 @@ public class TemplateManagerTest {
         assertTrue(names.contains(TemplateManager.AST_NODE_BASE_TEMPLATE));
         assertTrue(names.contains(TemplateManager.AST_NODE_TERMINAL_TEMPLATE));
         assertTrue(names.contains(TemplateManager.AST_NODE_NONTERMINAL_TEMPLATE));
+        assertTrue(names.contains(TemplateManager.AST_VISITOR_TEMPLATE));
         assertTrue(names.contains(TemplateManager.PARSE_EXCEPTION_TEMPLATE));
         assertTrue(names.contains(TemplateManager.PARSING_TABLE_TEMPLATE));
     }
     
     @Test
     void testGetTemplateCount() {
-        assertEquals(8, templateManager.getTemplateCount());
+        assertEquals(9, templateManager.getTemplateCount());
     }
     
     @Test

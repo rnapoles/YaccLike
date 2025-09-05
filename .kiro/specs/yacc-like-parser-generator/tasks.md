@@ -177,11 +177,16 @@
   - Always run `mvn test` to check that everything is working correctly
   - _Requirements: 4.1, 4.2, 4.3, 4.5, 4.6_
 
-- [ ] 10.2 Implement JavaCodeGenerator for parser generation
+- [-] 10.2 Implement JavaCodeGenerator for parser generation
+
+
+
+
   - Write JavaCodeGenerator class to produce complete parser code
   - Implement generation of main parser class with embedded tables
   - Add generation of token classes for all terminal symbols
   - Create comprehensive tests for code generation output
+  - Use Pebble as Java Template Engine
   - Always run `mvn test` to check that everything is working correctly
   - Create the required commits by running the `git commit` command
   - _Requirements: 4.1, 4.2, 4.5, 4.6_
@@ -191,6 +196,7 @@
   - Add error recovery mechanisms to generated parser code
   - Include proper package declarations and import statements
   - Write tests to verify generated code compiles and runs correctly
+  - Use Pebble as Java Template Engine
   - Always run `mvn test` to check that everything is working correctly
   - Create the required commits by running the `git commit` command
   - _Requirements: 4.3, 4.4, 4.5, 4.6_
