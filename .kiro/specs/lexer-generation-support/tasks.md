@@ -2,17 +2,16 @@
 
 - [x] 1. Create core lexer generation infrastructure
 
-
-
-
-
   - Implement `LexerCodeGenerator` class with basic structure and template integration
   - Create foundation for lexer-specific code generation separate from parser generation
   - Run the Maven tests to verify that the current implementation doesn't break anything.
   - When every thing is ok, save the changes using `git` command.
   - _Requirements: 1.1, 3.1_
 
-- [ ] 2. Implement lexer class template and basic generation
+- [-] 2. Implement lexer class template and basic generation
+
+
+
   - Create `lexer_class.peb` template for generating lexer classes from grammar terminals
   - Implement template variable preparation and rendering logic in `LexerCodeGenerator`
   - Generate basic lexer class structure with constructor and core methods

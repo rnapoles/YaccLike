@@ -1,0 +1,204 @@
+package {{ packageName }};
+
+import java.util.*;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+
+/**
+ * Tokenizer engine for pattern matching in generated lexers.
+ * This class provides the core tokenization logic that can be used
+ * by generated lexer classes for efficient pattern matching.
+ */
+public class TokenizerEngine {
+    
+    // Terminal patterns
+    private final Map<String, Pattern> terminalPatterns;
+    private final List<String> terminalOrder;
+    
+    /**
+     * Creates a new TokenizerEngine with the specified patterns.
+     *
+     * @param terminalPatterns map of terminal names to compiled patterns
+     * @param terminalOrder ordered list of terminal names for longest-match
+     */
+    public TokenizerEngine(Map<String, Pattern> terminalPatterns, List<String> terminalOrder) {
+        this.terminalPatterns = new HashMap<>(terminalPatterns);
+        this.terminalOrder = new ArrayList<>(terminalOrder);
+    }
+    
+    /**
+     * Finds the next token match in the input starting at the given position.
+     *
+     * @param input the input string to tokenize
+     * @param position the starting position in the input
+     * @return a TokenMatch object, or null if no match found
+     */
+    public TokenMatch findNextToken(String input, int position) {
+        if (input == null || position >= input.length()) {
+            return null;
+        }
+        
+        String bestMatch = null;
+        String bestMatchedText = null;
+        int bestMatchLength = 0;
+        
+        // Try each terminal pattern in order (longest match wins)
+        for (String terminalName : terminalOrder) {
+            Pattern pattern = terminalPatterns.get(terminalName);
+            if (pattern != null) {
+                Matcher matcher = pattern.matcher(input);
+                matcher.region(position, input.length());
+                
+                if (matcher.lookingAt()) {
+                    String matchedText = matcher.group();
+                    if (matchedText.length() > bestMatchLength) {
+                        bestMatch = terminalName;
+                        bestMatchedText = matchedText;
+                        bestMatchLength = matchedText.length();
+                    }
+                }
+            }
+        }
+        
+        if (bestMatch != null) {
+            return new TokenMatch(bestMatch, bestMatchedText, position, position + bestMatchLength, true);
+        }
+        
+        return new TokenMatch(null, "", position, position, false);
+    }
+    
+    /**
+     * Checks if the specified terminal matches at the given position.
+     *
+     * @param terminalName the name of the terminal to check
+     * @param input the input string
+     * @param position the position to check
+     * @return true if the terminal matches at the position
+     */
+    public boolean matches(String terminalName, String input, int position) {
+        Pattern pattern = terminalPatterns.get(terminalName);
+        if (pattern == null || input == null || position >= input.length()) {
+            return false;
+        }
+        
+        Matcher matcher = pattern.matcher(input);
+        matcher.region(position, input.length());
+        return matcher.lookingAt();
+    }
+    
+    /**
+     * Gets the compiled pattern for the specified terminal.
+     *
+     * @param terminalName the name of the terminal
+     * @return the compiled pattern, or null if not found
+     */
+    public Pattern getPattern(String terminalName) {
+        return terminalPatterns.get(terminalName);
+    }
+    
+    /**
+     * Gets all terminal names in matching order.
+     *
+     * @return list of terminal names
+     */
+    public List<String> getTerminalOrder() {
+        return new ArrayList<>(terminalOrder);
+    }
+    
+    /**
+     * Gets the number of terminals in this engine.
+     *
+     * @return the number of terminals
+     */
+    public int getTerminalCount() {
+        return terminalPatterns.size();
+    }
+    
+    /**
+     * Represents the result of a token matching operation.
+     */
+    public static class TokenMatch {
+        private final String terminalName;
+        private final String matchedText;
+        private final int startPosition;
+        private final int endPosition;
+        private final boolean isMatch;
+        
+        /**
+         * Creates a new TokenMatch.
+         *
+         * @param terminalName the name of the matched terminal
+         * @param matchedText the text that was matched
+         * @param startPosition the start position of the match
+         * @param endPosition the end position of the match
+         * @param isMatch whether this represents a successful match
+         */
+        public TokenMatch(String terminalName, String matchedText, int startPosition, int endPosition, boolean isMatch) {
+            this.terminalName = terminalName;
+            this.matchedText = matchedText;
+            this.startPosition = startPosition;
+            this.endPosition = endPosition;
+            this.isMatch = isMatch;
+        }
+        
+        /**
+         * Gets the name of the matched terminal.
+         *
+         * @return the terminal name
+         */
+        public String getTerminalName() {
+            return terminalName;
+        }
+        
+        /**
+         * Gets the matched text.
+         *
+         * @return the matched text
+         */
+        public String getMatchedText() {
+            return matchedText;
+        }
+        
+        /**
+         * Gets the start position of the match.
+         *
+         * @return the start position
+         */
+        public int getStartPosition() {
+            return startPosition;
+        }
+        
+        /**
+         * Gets the end position of the match.
+         *
+         * @return the end position
+         */
+        public int getEndPosition() {
+            return endPosition;
+        }
+        
+        /**
+         * Gets the length of the matched text.
+         *
+         * @return the match length
+         */
+        public int getLength() {
+            return endPosition - startPosition;
+        }
+        
+        /**
+         * Checks if this represents a successful match.
+         *
+         * @return true if this is a successful match
+         */
+        public boolean isMatch() {
+            return isMatch;
+        }
+        
+        @Override
+        public String toString() {
+            return String.format("TokenMatch{terminal='%s', text='%s', start=%d, end=%d, match=%s}",
+                    terminalName, matchedText, startPosition, endPosition, isMatch);
+        }
+    }
+}

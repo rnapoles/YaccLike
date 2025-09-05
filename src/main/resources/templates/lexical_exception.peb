@@ -1,0 +1,87 @@
+package {{ packageName }};
+
+/**
+ * Exception thrown when lexical analysis fails.
+ * This exception provides detailed information about lexical errors including
+ * position information and suggestions for fixing the error.
+ */
+public class LexicalException extends Exception {
+    private final int line;
+    private final int column;
+    private final String unexpectedInput;
+    
+    /**
+     * Creates a new LexicalException with detailed error information.
+     *
+     * @param message the error message
+     * @param line the line number where the error occurred
+     * @param column the column number where the error occurred
+     * @param unexpectedInput the input that caused the error
+     */
+    public LexicalException(String message, int line, int column, String unexpectedInput) {
+        super(message);
+        this.line = line;
+        this.column = column;
+        this.unexpectedInput = unexpectedInput;
+    }
+    
+    /**
+     * Creates a new LexicalException with a simple message.
+     *
+     * @param message the error message
+     */
+    public LexicalException(String message) {
+        this(message, 0, 0, "");
+    }
+    
+    /**
+     * Gets the line number where the error occurred.
+     *
+     * @return the line number (1-based)
+     */
+    public int getLine() {
+        return line;
+    }
+    
+    /**
+     * Gets the column number where the error occurred.
+     *
+     * @return the column number (1-based)
+     */
+    public int getColumn() {
+        return column;
+    }
+    
+    /**
+     * Gets the input that caused the lexical error.
+     *
+     * @return the unexpected input string
+     */
+    public String getUnexpectedInput() {
+        return unexpectedInput;
+    }
+    
+    /**
+     * Returns a detailed error message with position information.
+     *
+     * @return formatted error message
+     */
+    @Override
+    public String getMessage() {
+        String baseMessage = super.getMessage();
+        if (line > 0 && column > 0) {
+            return String.format("%s at line %d, column %d", baseMessage, line, column);
+        }
+        return baseMessage;
+    }
+    
+    /**
+     * Returns a string representation of this exception.
+     *
+     * @return string representation
+     */
+    @Override
+    public String toString() {
+        return "LexicalException: " + getMessage();
+    }
+}
