@@ -165,8 +165,15 @@
   - Write integration tests for end-to-end error handling
   - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
 
-- [ ] 10. Implement Java code generation
-- [ ] 10.1 Create code generation templates and utilities
+- [-] 10. Implement Java code generation
+
+
+
+
+
+- [-] 10.1 Create code generation templates and utilities
+
+
   - Write CodeTemplate class for managing Java code templates
   - Create templates for parser class, token classes, and AST nodes
   - Implement template filling with grammar-specific data
