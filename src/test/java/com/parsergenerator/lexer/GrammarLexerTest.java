@@ -691,7 +691,171 @@ class GrammarLexerTest {
             java.lang.reflect.Method method = GrammarLexer.class.getDeclaredMethod("skipLeadingWhitespaceOnContinuationLine");
             method.setAccessible(true);
             
-            // Skip leading whitespace
+            // Skip leading whitespace - should stop at newline
+            method.invoke(lexer);
+            
+            // After skipping, we should be at the newline character
+            assertEquals('\n', lexer.peek());
+            
+        } catch (Exception e) {
+            fail("Failed to test skipLeadingWhitespaceOnContinuationLine with newline: " + e.getMessage());
+        }
+    }
+    
+    @Test
+    void testSkipLeadingWhitespaceOnContinuationLineWithMixedWhitespace() {
+        GrammarLexer lexer = new GrammarLexer(" \t \r | <factor>");
+        
+        try {
+            java.lang.reflect.Method method = GrammarLexer.class.getDeclaredMethod("skipLeadingWhitespaceOnContinuationLine");
+            method.setAccessible(true);
+            
+            // Before skipping, we should be at the first space
+            assertEquals(' ', lexer.peek());
+            
+            // Skip leading whitespace (space, tab, space, carriage return)
+            method.invoke(lexer);
+            
+            // After skipping, we should be at the pipe character
+            assertEquals('|', lexer.peek());
+            
+        } catch (Exception e) {
+            fail("Failed to test skipLeadingWhitespaceOnContinuationLine with mixed whitespace: " + e.getMessage());
+        }
+    }
+    
+    @Test
+    void testIsAnyWhitespaceMethod() {
+        GrammarLexer lexer = new GrammarLexer("dummy");
+        
+        try {
+            java.lang.reflect.Method method = GrammarLexer.class.getDeclaredMethod("isAnyWhitespace", char.class);
+            method.setAccessible(true);
+            
+            // Test all whitespace characters
+            assertTrue((Boolean) method.invoke(lexer, ' '), "Space should be recognized as whitespace");
+            assertTrue((Boolean) method.invoke(lexer, '\t'), "Tab should be recognized as whitespace");
+            assertTrue((Boolean) method.invoke(lexer, '\r'), "Carriage return should be recognized as whitespace");
+            assertTrue((Boolean) method.invoke(lexer, '\n'), "Newline should be recognized as whitespace");
+            
+            // Test non-whitespace characters
+            assertFalse((Boolean) method.invoke(lexer, 'a'), "Letter should not be recognized as whitespace");
+            assertFalse((Boolean) method.invoke(lexer, '1'), "Digit should not be recognized as whitespace");
+            assertFalse((Boolean) method.invoke(lexer, '|'), "Pipe should not be recognized as whitespace");
+            assertFalse((Boolean) method.invoke(lexer, '<'), "Angle bracket should not be recognized as whitespace");
+            
+        } catch (Exception e) {
+            fail("Failed to test isAnyWhitespace method: " + e.getMessage());
+        }
+    }
+    
+    @Test
+    void testWhitespaceSkippingWithAllTypes() {
+        // Test that the lexer properly handles all types of whitespace
+        GrammarLexer lexer = new GrammarLexer(" \t \r ID \t \r = \t \r {test}");
+        List<Token> tokens = lexer.tokenize();
+        
+        assertEquals(4, tokens.size()); // ID + = + pattern + EOF (all whitespace skipped)
+        assertEquals(TokenType.TERMINAL, tokens.get(0).getType());
+        assertEquals("ID", tokens.get(0).getValue());
+        assertEquals(TokenType.EQUALS, tokens.get(1).getType());
+        assertEquals(TokenType.PATTERN, tokens.get(2).getType());
+        assertEquals("test", tokens.get(2).getValue());
+        assertEquals(TokenType.EOF, tokens.get(3).getType());
+    }
+    
+    @Test
+    void testPositionTrackingWithMixedWhitespace() {
+        // Test that position tracking works correctly with mixed whitespace
+        GrammarLexer lexer = new GrammarLexer(" \t ID\n \t NUMBER", "test.grammar");
+        List<Token> tokens = lexer.tokenize();
+        
+        assertEquals(4, tokens.size()); // ID + newline + NUMBER + EOF
+        
+        // Check positions - ID should be at column 4 (after space and tab)
+        assertEquals(1, tokens.get(0).getPosition().getLine());
+        assertEquals(4, tokens.get(0).getPosition().getColumn());
+        assertEquals("ID", tokens.get(0).getValue());
+        
+        // Newline should be at column 6 (after ID)
+        assertEquals(1, tokens.get(1).getPosition().getLine());
+        assertEquals(6, tokens.get(1).getPosition().getColumn());
+        assertEquals(TokenType.NEWLINE, tokens.get(1).getType());
+        
+        // NUMBER should be at line 2, column 4 (after space and tab on second line)
+        assertEquals(2, tokens.get(2).getPosition().getLine());
+        assertEquals(4, tokens.get(2).getPosition().getColumn());
+        assertEquals("NUMBER", tokens.get(2).getValue());
+    }
+    
+    @Test
+    void testMultiLineDetectionInfrastructureBasicFunctionality() {
+        // Test that the multi-line detection infrastructure works with basic patterns
+        String multiLineGrammar = "<expr> ::= <term> |\n  <factor>";
+        GrammarLexer lexer = new GrammarLexer(multiLineGrammar);
+        
+        // Test that we can tokenize the multi-line grammar
+        List<Token> tokens = lexer.tokenize();
+        
+        // Should get: <expr> + ::= + <term> + | + newline + <factor> + EOF
+        assertEquals(7, tokens.size());
+        assertEquals(TokenType.NON_TERMINAL, tokens.get(0).getType());
+        assertEquals("expr", tokens.get(0).getValue());
+        assertEquals(TokenType.PRODUCTION_ARROW, tokens.get(1).getType());
+        assertEquals(TokenType.NON_TERMINAL, tokens.get(2).getType());
+        assertEquals("term", tokens.get(2).getValue());
+        assertEquals(TokenType.PIPE, tokens.get(3).getType());
+        assertEquals(TokenType.NEWLINE, tokens.get(4).getType());
+        assertEquals(TokenType.NON_TERMINAL, tokens.get(5).getType());
+        assertEquals("factor", tokens.get(5).getValue());
+        assertEquals(TokenType.EOF, tokens.get(6).getType());
+    }
+    
+    @Test
+    void testMultiLineDetectionWithVariousWhitespacePatterns() {
+        // Test various whitespace patterns in multi-line productions
+        String[] testCases = {
+            "<expr> ::= <term> |\n\t<factor>",           // tab on continuation line
+            "<expr> ::= <term> |\n \t <factor>",         // space + tab on continuation line
+            "<expr> ::= <term> |\r\n  <factor>",         // CRLF line ending
+            "<expr> ::= <term> | \t \r\n\t\t<factor>"    // mixed whitespace everywhere
+        };
+        
+        for (String testCase : testCases) {
+            GrammarLexer lexer = new GrammarLexer(testCase);
+            List<Token> tokens = lexer.tokenize();
+            
+            // All should produce the same token structure
+            assertTrue(tokens.size() >= 6, "Should have at least 6 tokens for: " + testCase);
+            assertEquals(TokenType.NON_TERMINAL, tokens.get(0).getType());
+            assertEquals("expr", tokens.get(0).getValue());
+            assertEquals(TokenType.PRODUCTION_ARROW, tokens.get(1).getType());
+            assertEquals(TokenType.NON_TERMINAL, tokens.get(2).getType());
+            assertEquals("term", tokens.get(2).getValue());
+            assertEquals(TokenType.PIPE, tokens.get(3).getType());
+            assertEquals(TokenType.NEWLINE, tokens.get(4).getType());
+            
+            // Find the factor token (may have different position due to whitespace)
+            boolean foundFactor = false;
+            for (Token token : tokens) {
+                if (token.getType() == TokenType.NON_TERMINAL && "factor".equals(token.getValue())) {
+                    foundFactor = true;
+                    break;
+                }
+            }
+            assertTrue(foundFactor, "Should find factor token in: " + testCase);
+        }
+    }
+    
+    @Test
+    void testSkipLeadingWhitespaceStopsAtNewline() {
+        GrammarLexer lexer = new GrammarLexer("   \n<factor>");
+        
+        try {
+            java.lang.reflect.Method method = GrammarLexer.class.getDeclaredMethod("skipLeadingWhitespaceOnContinuationLine");
+            method.setAccessible(true);
+            
+            // Skip leading whitespace - should stop at newline
             method.invoke(lexer);
             
             // Should stop at newline, not skip it
@@ -718,25 +882,6 @@ class GrammarLexerTest {
             
         } catch (Exception e) {
             fail("Failed to test skipLeadingWhitespaceOnContinuationLine at end of input: " + e.getMessage());
-        }
-    }
-    
-    @Test
-    void testSkipLeadingWhitespaceOnContinuationLineWithMixedWhitespace() {
-        GrammarLexer lexer = new GrammarLexer(" \t \t  <factor>");
-        
-        try {
-            java.lang.reflect.Method method = GrammarLexer.class.getDeclaredMethod("skipLeadingWhitespaceOnContinuationLine");
-            method.setAccessible(true);
-            
-            // Skip leading whitespace
-            method.invoke(lexer);
-            
-            // Should be at the '<' character
-            assertEquals('<', lexer.peek());
-            
-        } catch (Exception e) {
-            fail("Failed to test skipLeadingWhitespaceOnContinuationLine with mixed whitespace: " + e.getMessage());
         }
     }
     

@@ -575,12 +575,24 @@ public class GrammarLexer {
     }
     
     /**
+     * Checks if a character is any type of whitespace including newlines.
+     * This method recognizes all whitespace characters: space (\s), tab (\t), 
+     * carriage return (\r), and newline (\n).
+     * 
+     * @param c the character to check
+     * @return true if the character is any type of whitespace
+     */
+    private boolean isAnyWhitespace(char c) {
+        return c == ' ' || c == '\t' || c == '\r' || c == '\n';
+    }
+    
+    /**
      * Skips leading whitespace on a continuation line while preserving
      * the lexer's position tracking. This method is specifically designed
      * for handling whitespace normalization when processing multi-line
      * production rules.
      * 
-     * This method skips spaces and tabs but stops at:
+     * This method skips spaces, tabs, and carriage returns but stops at:
      * - Newline characters (\n)
      * - End of input
      * - Non-whitespace characters

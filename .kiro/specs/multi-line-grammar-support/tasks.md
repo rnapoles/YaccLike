@@ -1,29 +1,28 @@
 # Implementation Plan
 
-- [x] 1. Add multi-line detection infrastructure to GrammarLexer
+- [-] 1. Add multi-line detection infrastructure to GrammarLexer
 
-  - Add private fields for tracking multi-line state (tokenBuffer, inMultiLineProduction, multiLineStartLine)
-  - Create helper method `isProductionContinuation()` to detect when a line continues a production rule
-  - Create helper method `isAtLineStart()` to check if current position is at the beginning of a line
+
+
+
+  - The characters \n,\t,\r,\s must be skiped
+  - Maintaint the position tracking
   - Write unit tests for the basic detection logic
   - Run the Maven tests to verify that the current implementation doesn't break anything.
   - When every thing is ok, save the changes using `git` command.
   - _Requirements: 1.1, 1.2, 1.3_
 
-- [-] 2. Implement line continuation detection logic
+- [ ] 2. Implement line continuation detection logic
 
-
-
-  - Create method `detectContinuationPattern()` that identifies trailing pipe patterns and incomplete productions
   - Add logic to handle whitespace normalization on continuation lines
-  - Create method `skipLeadingWhitespaceOnContinuationLine()` for proper whitespace handling
+  - Update the code for proper whitespace handling
   - Write unit tests for continuation pattern detection with various whitespace scenarios
   - Run the Maven tests to verify that the current implementation doesn't break anything.
   - When every thing is ok, save the changes using `git` command.
   - _Requirements: 1.1, 1.4, 1.5_
 
 - [ ] 3. Implement token buffering mechanism for multi-line productions
-  - Create method `handleMultiLineProduction()` that buffers tokens across line boundaries
+
   - Modify `nextToken()` method to use token buffering when multi-line production is detected
   - Add logic to flush token buffer when production rule is complete
   - Write unit tests for token buffering with simple two-line production rules
