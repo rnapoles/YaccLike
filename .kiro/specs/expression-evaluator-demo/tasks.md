@@ -19,7 +19,8 @@
   - C:\Work\IA\Parser\YaccLike\demo is the current project
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
-- [ ] 3. Implement core data structures and enums
+- [x] 3. Implement core data structures and enums
+
   - Create BinaryOperator enum with all arithmetic operators
   - Create UnaryOperator enum for unary operations
   - Create MathFunction enum for supported mathematical functions
@@ -28,7 +29,8 @@
   - When every thing is ok, create the required commits by running the `git commit` command.  
   - _Requirements: 3.6, 4.4_
 
-- [ ] 4. Implement VariableContext for variable management
+- [x] 4. Implement VariableContext for variable management
+
   - Create VariableContext class with variable storage and lookup methods
   - Implement setVariable, getVariable, and hasVariable methods
   - Add built-in constants (pi, e) to default context
@@ -37,7 +39,8 @@
   - When every thing is ok, create the required commits by running the `git commit` command.  
   - _Requirements: 3.6_
 
-- [ ] 5. Implement MathFunctionLibrary for mathematical functions
+- [x] 5. Implement MathFunctionLibrary for mathematical functions
+
   - Create MathFunctionLibrary class with all required mathematical functions
   - Implement trigonometric functions (sin, cos, tan)
   - Implement logarithmic functions (log, ln) with proper base handling
@@ -47,7 +50,8 @@
   - When every thing is ok, create the required commits by running the `git commit` command.  
   - _Requirements: 3.3, 4.4_
 
-- [ ] 6. Implement ExpressionEvaluator using visitor pattern
+- [x] 6. Implement ExpressionEvaluator using visitor pattern
+
   - Create ExpressionEvaluator class implementing visitor pattern for AST traversal
   - Implement visitBinaryOp method for all binary arithmetic operations
   - Implement visitUnaryOp method for unary minus operation
