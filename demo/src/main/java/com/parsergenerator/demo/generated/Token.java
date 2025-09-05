@@ -1,0 +1,78 @@
+package com.parsergenerator.demo.generated;
+
+/**
+ * Represents a token in the  grammar.
+ */
+public class Token {
+    private final TokenType type;
+    private final String value;
+    private final Position position;
+    
+    /**
+     * Creates a new token.
+     *
+     * @param type the token type
+     * @param value the token value
+     * @param position the token position in source
+     */
+    public Token(TokenType type, String value, Position position) {
+        if (type == null) {
+            throw new IllegalArgumentException("Token type cannot be null");
+        }
+        if (value == null) {
+            throw new IllegalArgumentException("Token value cannot be null");
+        }
+        if (position == null) {
+            throw new IllegalArgumentException("Token position cannot be null");
+        }
+        
+        this.type = type;
+        this.value = value;
+        this.position = position;
+    }
+    
+    /**
+     * Returns the token type.
+     */
+    public TokenType getType() {
+        return type;
+    }
+    
+    /**
+     * Returns the token value.
+     */
+    public String getValue() {
+        return value;
+    }
+    
+    /**
+     * Returns the token position.
+     */
+    public Position getPosition() {
+        return position;
+    }
+    
+    @Override
+    public String toString() {
+        return type + "(" + value + ")";
+    }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        
+        Token token = (Token) obj;
+        return type == token.type &&
+               value.equals(token.value) &&
+               position.equals(token.position);
+    }
+    
+    @Override
+    public int hashCode() {
+        int result = type.hashCode();
+        result = 31 * result + value.hashCode();
+        result = 31 * result + position.hashCode();
+        return result;
+    }
+}
