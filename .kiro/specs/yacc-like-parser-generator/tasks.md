@@ -202,7 +202,8 @@
 - [-] 11. Create main application and CLI interface
 
 
-- [-] 11.1 Implement ParserGenerator main class
+- [x] 11.1 Implement ParserGenerator main class
+
 
   - Write main application class to coordinate all components
   - Implement command-line argument parsing and validation
@@ -212,7 +213,8 @@
   - Create the required commits by running the `git commit` command
   - _Requirements: 4.1, 4.6, 5.1_
 
-- [ ] 11.2 Add comprehensive CLI options and help system
+- [-] 11.2 Add comprehensive CLI options and help system
+
   - Implement options for output directory, package names, and debugging
   - Add verbose mode for detailed processing information
   - Create help system with usage examples and grammar format documentation

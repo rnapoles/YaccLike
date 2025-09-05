@@ -32,6 +32,9 @@ public class ParserGenerator {
     
     private final ErrorReporter errorReporter;
     private boolean verbose;
+    private boolean debug;
+    private boolean showWarnings;
+    private boolean generateComments;
     private String outputDirectory;
     private String packageName;
     private String grammarName;
@@ -42,6 +45,9 @@ public class ParserGenerator {
     public ParserGenerator() {
         this.errorReporter = new ErrorReporter();
         this.verbose = false;
+        this.debug = false;
+        this.showWarnings = true;
+        this.generateComments = true;
         this.outputDirectory = "generated";
         this.packageName = "com.generated.parser";
         this.grammarName = "GeneratedGrammar";
@@ -94,7 +100,7 @@ public class ParserGenerator {
             
         } catch (Exception e) {
             System.err.println("Fatal error: " + e.getMessage());
-            if (generator.verbose) {
+            if (generator.debug || generator.verbose) {
                 e.printStackTrace();
             }
             return 1;
@@ -109,6 +115,19 @@ public class ParserGenerator {
     public void configure(CLIOptions options) {
         if (options.verbose) {
             this.verbose = true;
+        }
+        
+        if (options.debug) {
+            this.debug = true;
+            this.verbose = true; // Debug implies verbose
+        }
+        
+        if (options.noWarnings) {
+            this.showWarnings = false;
+        }
+        
+        if (options.noComments) {
+            this.generateComments = false;
         }
         
         if (options.outputDirectory != null) {
@@ -161,6 +180,36 @@ public class ParserGenerator {
     }
     
     /**
+     * Sets the debug mode.
+     * 
+     * @param debug true to enable debug output
+     */
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+        if (debug) {
+            this.verbose = true; // Debug implies verbose
+        }
+    }
+    
+    /**
+     * Sets whether to show warnings.
+     * 
+     * @param showWarnings true to show warnings
+     */
+    public void setShowWarnings(boolean showWarnings) {
+        this.showWarnings = showWarnings;
+    }
+    
+    /**
+     * Sets whether to generate comments in output code.
+     * 
+     * @param generateComments true to generate comments
+     */
+    public void setGenerateComments(boolean generateComments) {
+        this.generateComments = generateComments;
+    }
+    
+    /**
      * Generates a parser from the specified grammar file.
      * 
      * @param grammarFile path to the grammar file
@@ -172,7 +221,9 @@ public class ParserGenerator {
             
             // Step 1: Read and tokenize grammar file
             logInfo("Reading grammar file...");
+            logDebug("Grammar file path: " + grammarFile);
             String grammarContent = readGrammarFile(grammarFile);
+            logDebug("Grammar content length: " + grammarContent.length() + " characters");
             
             logInfo("Tokenizing grammar...");
             GrammarLexer lexer = new GrammarLexer(grammarContent, grammarFile, errorReporter);
@@ -200,6 +251,12 @@ public class ParserGenerator {
             logInfo(String.format("Grammar parsing completed: %d productions, %d terminals, %d non-terminals",
                     grammar.getProductions().size(), grammar.getTerminals().size(), grammar.getNonTerminals().size()));
             
+            if (debug) {
+                logDebug("Start symbol: " + (grammar.getStartSymbol() != null ? grammar.getStartSymbol().getName() : "none"));
+                logDebug("Terminals: " + grammar.getTerminals().stream().map(t -> t.getName()).reduce((a, b) -> a + ", " + b).orElse("none"));
+                logDebug("Non-terminals: " + grammar.getNonTerminals().stream().map(nt -> nt.getName()).reduce((a, b) -> a + ", " + b).orElse("none"));
+            }
+            
             // Step 3: Analyze grammar
             logInfo("Analyzing grammar...");
             GrammarAnalyzer analyzer = new GrammarAnalyzer(grammar, errorReporter);
@@ -212,8 +269,12 @@ public class ParserGenerator {
             }
             
             if (errorReporter.hasWarnings()) {
-                logWarning("Grammar analysis completed with warnings:");
-                printWarnings();
+                if (showWarnings) {
+                    logWarning("Grammar analysis completed with warnings:");
+                    printWarnings();
+                } else {
+                    logInfo("Grammar analysis completed with warnings (use -w to show warnings)");
+                }
             } else {
                 logInfo("Grammar analysis completed successfully");
             }
@@ -230,6 +291,7 @@ public class ParserGenerator {
             }
             
             logInfo(String.format("LALR table construction completed: %d states", parsingTable.getStateCount()));
+            logDebug("Parsing table construction details available in verbose mode");
             
             // Step 5: Generate Java code
             logInfo("Generating Java parser code...");
@@ -243,6 +305,13 @@ public class ParserGenerator {
             }
             
             logInfo(String.format("Code generation completed: %d files generated", generatedCode.getFileCount()));
+            
+            if (debug) {
+                logDebug("Generated files:");
+                for (String fileName : generatedCode.getFileNames()) {
+                    logDebug("  - " + fileName);
+                }
+            }
             
             // Step 6: Write generated files
             logInfo("Writing generated files...");
@@ -261,7 +330,7 @@ public class ParserGenerator {
             
         } catch (Exception e) {
             logError("Unexpected error during parser generation: " + e.getMessage());
-            if (verbose) {
+            if (debug || verbose) {
                 e.printStackTrace();
             }
             return false;
@@ -368,6 +437,24 @@ public class ParserGenerator {
                     options.verbose = true;
                     break;
                     
+                case "-d":
+                case "--debug":
+                    options.debug = true;
+                    break;
+                    
+                case "-w":
+                case "--warnings":
+                    options.noWarnings = false;
+                    break;
+                    
+                case "--no-warnings":
+                    options.noWarnings = true;
+                    break;
+                    
+                case "--no-comments":
+                    options.noComments = true;
+                    break;
+                    
                 case "-o":
                 case "--output":
                     if (i + 1 < args.length) {
@@ -427,6 +514,10 @@ public class ParserGenerator {
         System.out.println("Options:");
         System.out.println("  -h, --help              Show this help message and exit");
         System.out.println("  -v, --verbose           Enable verbose output");
+        System.out.println("  -d, --debug             Enable debug output (implies verbose)");
+        System.out.println("  -w, --warnings          Show warnings (default)");
+        System.out.println("      --no-warnings       Suppress warning messages");
+        System.out.println("      --no-comments        Don't generate comments in output code");
         System.out.println("  -o, --output DIR        Output directory for generated files (default: generated)");
         System.out.println("  -p, --package PACKAGE   Package name for generated classes (default: com.generated.parser)");
         System.out.println("  -n, --name NAME         Grammar name for generated classes (default: GeneratedGrammar)");
@@ -441,20 +532,29 @@ public class ParserGenerator {
         System.out.println("  " + getExecutableName() + " arithmetic.grammar");
         System.out.println("  " + getExecutableName() + " -v -o src/main/java -p com.myapp.parser arithmetic.grammar");
         System.out.println("  " + getExecutableName() + " --package com.example --name Calculator calculator.grammar");
+        System.out.println("  " + getExecutableName() + " --debug --no-warnings -o build/generated calculator.grammar");
+        System.out.println("  " + getExecutableName() + " -d --no-comments -p com.calc -n CalcParser calc.grammar");
         System.out.println();
         System.out.println("Example Grammar (arithmetic.grammar):");
         System.out.println("  -- Arithmetic expression grammar");
-        System.out.println("  NUMBER = {[0-9]+}+");
-        System.out.println("  PLUS = {\\+}+");
-        System.out.println("  MULTIPLY = {\\*}+");
-        System.out.println("  LPAREN = {\\(}+");
-        System.out.println("  RPAREN = {\\)}+");
+        System.out.println("  NUMBER = {[0-9]+}");
+        System.out.println("  PLUS = {\\+}");
+        System.out.println("  MULTIPLY = {\\*}");
+        System.out.println("  LPAREN = {\\(}");
+        System.out.println("  RPAREN = {\\)}");
         System.out.println();
         System.out.println("  Start = <Expression>");
         System.out.println();
-        System.out.println("  <Expression> ::= <Expression> PLUS <Term> | <Term>");
-        System.out.println("  <Term> ::= <Term> MULTIPLY <Factor> | <Factor>");
+        System.out.println("  <Expression> ::= <Term> PLUS <Expression> | <Term>");
+        System.out.println("  <Term> ::= <Factor> MULTIPLY <Term> | <Factor>");
         System.out.println("  <Factor> ::= NUMBER | LPAREN <Expression> RPAREN");
+        System.out.println();
+        System.out.println("Grammar Format Notes:");
+        System.out.println("  - Terminal patterns are enclosed in braces: {pattern}");
+        System.out.println("  - Non-terminals are enclosed in angle brackets: <NonTerminal>");
+        System.out.println("  - Use '::=' for production rules, '=' for terminal definitions");
+        System.out.println("  - Comments start with '--' and continue to end of line");
+        System.out.println("  - Avoid left recursion for LALR(1) compatibility");
     }
     
     /**
@@ -503,6 +603,17 @@ public class ParserGenerator {
     }
     
     /**
+     * Logs a debug message.
+     * 
+     * @param message the message to log
+     */
+    private void logDebug(String message) {
+        if (debug) {
+            System.out.println("[DEBUG] " + message);
+        }
+    }
+    
+    /**
      * Prints all errors from the error reporter.
      */
     private void printErrors() {
@@ -526,6 +637,9 @@ public class ParserGenerator {
     private static class CLIOptions {
         boolean showHelp = false;
         boolean verbose = false;
+        boolean debug = false;
+        boolean noWarnings = false;
+        boolean noComments = false;
         String inputFile = null;
         String outputDirectory = null;
         String packageName = null;
