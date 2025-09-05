@@ -209,11 +209,27 @@ class JavaCodeGeneratorTest {
         assertTrue(tokenTypeCode.contains("package com.test.parser;"));
         assertTrue(tokenTypeCode.contains("enum TokenType"));
         
-        // Check that all terminals are included
+        // Check that all terminals are included with proper enum names
         for (Terminal terminal : testGrammar.getTerminals()) {
-            String enumName = terminal.getName().replaceAll("[^a-zA-Z0-9_]", "_").toUpperCase();
-            assertTrue(tokenTypeCode.contains(enumName), 
-                "TokenType should contain " + enumName + " for terminal " + terminal.getName());
+            String expectedEnumName;
+            switch (terminal.getName()) {
+                case "+": expectedEnumName = "PLUS"; break;
+                case "*": expectedEnumName = "MULTIPLY"; break;
+                case "(": expectedEnumName = "LPAREN"; break;
+                case ")": expectedEnumName = "RPAREN"; break;
+                case "ID": expectedEnumName = "ID"; break;
+                default: 
+                    expectedEnumName = terminal.getName().replaceAll("[^a-zA-Z0-9_]", "_")
+                                                        .replaceAll("_+", "_")
+                                                        .replaceAll("^_|_$", "")
+                                                        .toUpperCase();
+                    if (expectedEnumName.isEmpty() || Character.isDigit(expectedEnumName.charAt(0))) {
+                        expectedEnumName = "TOKEN_" + expectedEnumName;
+                    }
+                    break;
+            }
+            assertTrue(tokenTypeCode.contains(expectedEnumName), 
+                "TokenType should contain " + expectedEnumName + " for terminal " + terminal.getName());
         }
     }
     

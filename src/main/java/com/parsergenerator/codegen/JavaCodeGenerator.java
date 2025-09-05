@@ -104,6 +104,10 @@ public class JavaCodeGenerator {
         String exceptionCode = generateParseException();
         result.addFile("ParseException.java", exceptionCode);
         
+        // Generate position class
+        String positionCode = generatePositionClass();
+        result.addFile("Position.java", positionCode);
+        
         return result;
     }
     
@@ -225,6 +229,16 @@ public class JavaCodeGenerator {
         variables.put("packageName", packageName);
         
         return templateManager.renderTemplate(TemplateManager.PARSE_EXCEPTION_TEMPLATE, variables);
+    }
+    
+    /**
+     * Generates the Position class.
+     */
+    private String generatePositionClass() throws TemplateException {
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("packageName", packageName);
+        
+        return templateManager.renderTemplate(TemplateManager.POSITION_CLASS_TEMPLATE, variables);
     }
     
     /**
@@ -425,10 +439,49 @@ public class JavaCodeGenerator {
             return "UNKNOWN";
         }
         
-        // Remove special characters and convert to uppercase
-        return name.replaceAll("[^a-zA-Z0-9_]", "_")
-                  .replaceAll("_+", "_")
-                  .toUpperCase();
+        // Handle special cases for common symbols
+        switch (name) {
+            case "+": return "PLUS";
+            case "-": return "MINUS";
+            case "*": return "MULTIPLY";
+            case "/": return "DIVIDE";
+            case "=": return "EQUALS";
+            case "(": return "LPAREN";
+            case ")": return "RPAREN";
+            case "{": return "LBRACE";
+            case "}": return "RBRACE";
+            case "[": return "LBRACKET";
+            case "]": return "RBRACKET";
+            case ";": return "SEMICOLON";
+            case ",": return "COMMA";
+            case ".": return "DOT";
+            case ":": return "COLON";
+            case "::": return "DOUBLE_COLON";
+            case "::=": return "PRODUCTION";
+            case "|": return "PIPE";
+            case "<": return "LT";
+            case ">": return "GT";
+            case "<=": return "LE";
+            case ">=": return "GE";
+            case "==": return "EQ";
+            case "!=": return "NE";
+            case "&&": return "AND";
+            case "||": return "OR";
+            case "!": return "NOT";
+            default:
+                // For other names, clean them up
+                String cleaned = name.replaceAll("[^a-zA-Z0-9_]", "_")
+                                    .replaceAll("_+", "_")
+                                    .replaceAll("^_|_$", "") // Remove leading/trailing underscores
+                                    .toUpperCase();
+                
+                // Ensure it starts with a letter or underscore
+                if (cleaned.isEmpty() || Character.isDigit(cleaned.charAt(0))) {
+                    cleaned = "TOKEN_" + cleaned;
+                }
+                
+                return cleaned.isEmpty() ? "UNKNOWN" : cleaned;
+        }
     }
     
     /**

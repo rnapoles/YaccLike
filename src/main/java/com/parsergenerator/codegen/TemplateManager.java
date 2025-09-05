@@ -28,6 +28,7 @@ public class TemplateManager {
     public static final String AST_VISITOR_TEMPLATE = "ast_visitor";
     public static final String PARSE_EXCEPTION_TEMPLATE = "parse_exception";
     public static final String PARSING_TABLE_TEMPLATE = "parsing_table";
+    public static final String POSITION_CLASS_TEMPLATE = "position_class";
     
     /**
      * Creates a new TemplateManager with Pebble engine configured for classpath templates.
@@ -135,6 +136,7 @@ public class TemplateManager {
         templatePaths.put(AST_VISITOR_TEMPLATE, "ast_visitor.peb");
         templatePaths.put(PARSE_EXCEPTION_TEMPLATE, "parse_exception.peb");
         templatePaths.put(PARSING_TABLE_TEMPLATE, "parsing_table.peb");
+        templatePaths.put(POSITION_CLASS_TEMPLATE, "position_class.peb");
     }
     
     /**

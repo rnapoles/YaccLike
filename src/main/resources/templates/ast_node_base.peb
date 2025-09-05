@@ -4,8 +4,10 @@ import java.util.List;
 
 /**
  * Base class for all AST nodes in the {{ grammarName }} grammar.
+ * Provides common functionality for AST traversal and manipulation.
  */
 public abstract class {{ className }} {
+    private {{ className }} parent;
     
     /**
      * Returns the type of this AST node.
@@ -26,4 +28,66 @@ public abstract class {{ className }} {
      * Accepts a visitor for traversing the AST.
      */
     public abstract <T> T accept(ASTVisitor<T> visitor);
+    
+    /**
+     * Returns the parent node, or null if this is the root.
+     */
+    public {{ className }} getParent() {
+        return parent;
+    }
+    
+    /**
+     * Sets the parent node.
+     */
+    public void setParent({{ className }} parent) {
+        this.parent = parent;
+    }
+    
+    /**
+     * Returns true if this is the root node.
+     */
+    public boolean isRoot() {
+        return parent == null;
+    }
+    
+    /**
+     * Returns the depth of this node in the tree.
+     */
+    public int getDepth() {
+        int depth = 0;
+        {{ className }} current = parent;
+        while (current != null) {
+            depth++;
+            current = current.getParent();
+        }
+        return depth;
+    }
+    
+    /**
+     * Returns a string representation of the subtree rooted at this node.
+     */
+    public String toTreeString() {
+        return toTreeString(0);
+    }
+    
+    /**
+     * Returns a string representation with indentation.
+     */
+    protected String toTreeString(int indent) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < indent; i++) {
+            sb.append("  ");
+        }
+        sb.append(getNodeType());
+        if (isTerminal()) {
+            sb.append(": ").append(toString());
+        }
+        sb.append("\n");
+        
+        for ({{ className }} child : getChildren()) {
+            sb.append(child.toTreeString(indent + 1));
+        }
+        
+        return sb.toString();
+    }
 }

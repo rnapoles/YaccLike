@@ -86,7 +86,7 @@ public class TemplateManagerTest {
     void testGetTemplateNames() {
         Set<String> names = templateManager.getTemplateNames();
         assertNotNull(names);
-        assertEquals(9, names.size()); // Exactly 9 predefined templates
+        assertEquals(10, names.size()); // Exactly 10 predefined templates
         
         assertTrue(names.contains(TemplateManager.PARSER_CLASS_TEMPLATE));
         assertTrue(names.contains(TemplateManager.TOKEN_CLASS_TEMPLATE));
@@ -97,11 +97,12 @@ public class TemplateManagerTest {
         assertTrue(names.contains(TemplateManager.AST_VISITOR_TEMPLATE));
         assertTrue(names.contains(TemplateManager.PARSE_EXCEPTION_TEMPLATE));
         assertTrue(names.contains(TemplateManager.PARSING_TABLE_TEMPLATE));
+        assertTrue(names.contains(TemplateManager.POSITION_CLASS_TEMPLATE));
     }
     
     @Test
     void testGetTemplateCount() {
-        assertEquals(9, templateManager.getTemplateCount());
+        assertEquals(10, templateManager.getTemplateCount());
     }
     
     @Test
@@ -151,7 +152,8 @@ public class TemplateManagerTest {
         assertTrue(result.contains("TokenType type"));
         assertTrue(result.contains("String value"));
         assertTrue(result.contains("Position position"));
-        assertTrue(result.contains("class Position"));
+        // Position is now a separate class, not an inner class
+        assertFalse(result.contains("class Position"));
     }
     
     @Test

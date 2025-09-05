@@ -177,10 +177,7 @@
   - Always run `mvn test` to check that everything is working correctly
   - _Requirements: 4.1, 4.2, 4.3, 4.5, 4.6_
 
-- [-] 10.2 Implement JavaCodeGenerator for parser generation
-
-
-
+- [x] 10.2 Implement JavaCodeGenerator for parser generation
 
   - Write JavaCodeGenerator class to produce complete parser code
   - Implement generation of main parser class with embedded tables
@@ -191,7 +188,10 @@
   - Create the required commits by running the `git commit` command
   - _Requirements: 4.1, 4.2, 4.5, 4.6_
 
-- [ ] 10.3 Generate AST node classes and error handling
+- [-] 10.3 Generate AST node classes and error handling
+
+
+
   - Implement AST node class generation for all non-terminals
   - Add error recovery mechanisms to generated parser code
   - Include proper package declarations and import statements
