@@ -188,9 +188,7 @@
   - Create the required commits by running the `git commit` command
   - _Requirements: 4.1, 4.2, 4.5, 4.6_
 
-- [-] 10.3 Generate AST node classes and error handling
-
-
+- [x] 10.3 Generate AST node classes and error handling
 
   - Implement AST node class generation for all non-terminals
   - Add error recovery mechanisms to generated parser code
@@ -201,8 +199,11 @@
   - Create the required commits by running the `git commit` command
   - _Requirements: 4.3, 4.4, 4.5, 4.6_
 
-- [ ] 11. Create main application and CLI interface
-- [ ] 11.1 Implement ParserGenerator main class
+- [-] 11. Create main application and CLI interface
+
+
+- [-] 11.1 Implement ParserGenerator main class
+
   - Write main application class to coordinate all components
   - Implement command-line argument parsing and validation
   - Add file I/O handling for grammar input and code output
