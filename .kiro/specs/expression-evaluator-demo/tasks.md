@@ -8,14 +8,20 @@
   - Create proper package structure for the demo project
   - _Requirements: 1.1, 1.2, 1.3_
 
-- [-] 2. Generate parser code from expression-evaluator.grammar
+- [x] 2. Generate parser code from expression-evaluator.grammar
+
+
+
 
 
 
   - Copy expression-evaluator.grammar to the project resources
+  - Create yacc-like-parser-generator jar file with all dependencies
   - Use yacc-like-parser-generator to process the grammar file
   - Generate lexer, parser, and AST node classes in appropriate packages
   - Verify generated code compiles without errors
+  - C:\Work\IA\Parser\YaccLike\ is the yacc-like-parser-generator directory
+  - C:\Work\IA\Parser\YaccLike\demo is the current project
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
 - [ ] 3. Implement core data structures and enums
