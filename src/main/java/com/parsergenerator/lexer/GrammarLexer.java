@@ -199,9 +199,24 @@ public class GrammarLexer {
         StringBuilder pattern = new StringBuilder();
         advance(); // opening {
         
-        while (!isAtEnd() && peek() != '}') {
-            pattern.append(peek());
-            advance();
+        while (!isAtEnd()) {
+            char c = peek();
+            
+            if (c == '}') {
+                // Found closing brace, end pattern
+                break;
+            } else if (c == '\\' && position + 1 < input.length()) {
+                // Handle escaped character
+                pattern.append(c); // Add the backslash
+                advance();
+                if (!isAtEnd()) {
+                    pattern.append(peek()); // Add the escaped character
+                    advance();
+                }
+            } else {
+                pattern.append(c);
+                advance();
+            }
         }
         
         if (isAtEnd()) {
