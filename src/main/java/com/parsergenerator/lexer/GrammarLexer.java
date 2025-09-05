@@ -305,6 +305,17 @@ public class GrammarLexer {
         return c == ' ' || c == '\t' || c == '\r';
     }
     
+    /**
+     * Enhanced whitespace skipping that handles all whitespace characters
+     * including spaces, tabs, and carriage returns, but preserves newlines
+     * for proper line tracking in multi-line productions.
+     */
+    private void skipAllWhitespaceExceptNewlines() {
+        while (!isAtEnd() && isWhitespace(peek()) && peek() != '\n') {
+            advance();
+        }
+    }
+    
     private boolean isIdentifierStart(char c) {
         return Character.isLetter(c) || c == '_';
     }

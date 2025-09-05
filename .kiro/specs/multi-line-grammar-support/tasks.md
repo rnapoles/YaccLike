@@ -1,6 +1,6 @@
 # Implementation Plan
 
-- [x] 1. Add multi-line detection infrastructure to GrammarLexer
+- [-] 1. Add multi-line detection infrastructure to GrammarLexer
 
 
 
