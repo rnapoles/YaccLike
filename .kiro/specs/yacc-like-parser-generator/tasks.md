@@ -199,7 +199,9 @@
   - Create the required commits by running the `git commit` command
   - _Requirements: 4.3, 4.4, 4.5, 4.6_
 
-- [-] 11. Create main application and CLI interface
+- [x] 11. Create main application and CLI interface
+
+
 
 
 - [x] 11.1 Implement ParserGenerator main class
@@ -213,7 +215,7 @@
   - Create the required commits by running the `git commit` command
   - _Requirements: 4.1, 4.6, 5.1_
 
-- [-] 11.2 Add comprehensive CLI options and help system
+- [x] 11.2 Add comprehensive CLI options and help system
 
   - Implement options for output directory, package names, and debugging
   - Add verbose mode for detailed processing information
@@ -223,8 +225,12 @@
   - Create the required commits by running the `git commit` command
   - _Requirements: 4.6, 5.1, 5.4_
 
-- [ ] 12. Test with arithmetic grammar example
-- [ ] 12.1 Implement arithmetic grammar test case
+- [-] 12. Test with arithmetic grammar example
+
+
+- [-] 12.1 Implement arithmetic grammar test case
+
+
   - Create test case using the provided arithmetic grammar
   - Verify correct parsing of expressions with proper precedence
   - Test parentheses handling and associativity rules

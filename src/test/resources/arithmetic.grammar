@@ -1,0 +1,15 @@
+-- Arithmetic expression grammar
+-- This grammar demonstrates proper operator precedence and associativity
+-- for basic arithmetic operations with parentheses support
+
+NUMBER = {[0-9]+}
+PLUS = {\+}
+MULTIPLY = {\*}
+LPAREN = {\(}
+RPAREN = {\)}
+
+Start = <Expression>
+
+<Expression> ::= <Term> PLUS <Expression> | <Term>
+<Term> ::= <Factor> MULTIPLY <Term> | <Factor>
+<Factor> ::= NUMBER | LPAREN <Expression> RPAREN
